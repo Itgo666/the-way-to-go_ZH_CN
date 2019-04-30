@@ -1,0 +1,89 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>15.2 一个简单的网页服务器</h1>
+<p>Http是一个比tcp更高级的协议，它描述了客户端浏览器如何与网页服务器进行通信。Go有自己的<code>net/http</code>包，我们来看看它。我们从一些简单的示例开始，
+首先编写一个“Hello world!”：<a href="examples/chapter_15/hello_world_webserver.go">查看示例15.6</a></p>
+<p>我们引入了<code>http</code>包并启动了网页服务器，和15.1的<code>net.Listen("tcp", "localhost:50000")</code>函数的tcp服务器是类似的，使用<code>http.ListenAndServe("localhost:8080", nil)</code>函数，如果成功会返回空，否则会返回一个错误（可以指定localhost为其他地址，8080是指定的端口号）</p>
+<p><code>http.URL</code>描述了web服务器的地址，内含存放了url字符串的<code>Path</code>属性；<code>http.Request</code>描述了客户端请求，内含一个<code>URL</code>属性</p>
+<p>如果<code>req</code>请求是一个POST类型的html表单，“var1”就是html表单中一个输入属性的名称，然后用户输入的值就可以通过GO代码：<code>req.FormValue("var1")</code>获取到（请看<a href="15.4.md.html">章节15.4</a>）。还有一种方法就是先执行<code>request.ParseForm()</code>然后再获取<code>request.Form["var1"]</code>的第一个返回参数，就像这样：</p>
+<p><code>go
+  var1, found := request.Form["var1"]</code>
+第二个参数<code>found</code>就是<code>true</code>，如果<code>var1</code>并未出现在表单中，<code>found</code>就是<code>false</code></p>
+<p>表单属性实际上是一个<code>map[string][]string</code>类型。网页服务器返回了一个<code>http.Response</code>，它是通过<code>http.ResponseWriter</code>对象输出的，这个对象整合了HTTP服务器的返回结果；通过对它写入内容，我们就将数据发送给了HTTP客户端。</p>
+<p>现在我们还需要编写网页服务器必须执行的程序，它是如何处理请求的呢。这是在<code>http.HandleFunc</code>函数中完成的，就是在这个例子中当根路径“/”（url地址是http://localhost:8080 ）被请求的时候（或者这个服务器上的其他地址），<code>HelloServer</code>函数就被执行了。这个函数是<code>http.HandlerFunc</code>类型的，它们通常用使用Prehandler来命名，在前边加了一个Pref前缀。</p>
+<p><code>http.HandleFunc</code>注册了一个处理函数(这里是<code>HelloServer</code>)来处理对应<code>/</code>的请求。</p>
+<p><code>/</code>可以被替换为其他特定的url比如<code>/create</code>，<code>/edit</code>等等；你可以为每一个特定的url定义一个单独的处理函数。这个函数需要两个参数：第一个是<code>ReponseWriter</code>类型的<code>w</code>；第二个是请求<code>req</code>。程序向<code>w</code>写入了<code>Hello</code>和<code>r.URL.Path[1:]</code>组成的字符串后边的<code>[1:]</code>表示“创建一个从第一个字符到结尾的子切片”，用来丢弃掉路径开头的“/”，<code>fmt.Fprintf()</code>函数完成了本次写入（请看<a href="12.8.md.html">章节12.8</a>）；另外一种写法是<code>io.WriteString(w, "hello, world!\n")</code></p>
+<p>总结：第一个参数是请求的路径，第二个参数是处理这个路径请求的函数的引用。</p>
+<p>示例 15.6 <a href="examples/chapter_15/hello_world_webserver.go">hello_world_webserver.go</a>：</p>
+<p>```go
+package main</p>
+<p>import (
+    "fmt"
+    "log"
+    "net/http"
+)</p>
+<p>func HelloServer(w http.ResponseWriter, req *http.Request) {
+    fmt.Println("Inside HelloServer handler")
+    fmt.Fprintf(w, "Hello,"+req.URL.Path[1:])
+}</p>
+<p>func main() {
+    http.HandleFunc("/", HelloServer)
+    err := http.ListenAndServe("localhost:8080", nil)
+    if err != nil {
+        log.Fatal("ListenAndServe: ", err.Error())
+    }
+}
+<code>使用命令行启动程序，会打开一个命令窗口显示如下文字：</code>
+Starting Process E:/Go/GoBoek/code_examples/chapter_14/hello_world_webserver.exe
+...
+<code>``
+然后打开你的浏览器并输入url地址：</code>http://localhost:8080/world<code>，浏览器就会出现文字：</code>Hello, world<code>，网页服务器会响应你在</code>:8080/`后边输入的内容</p>
+<p>使用<code>fmt.Println</code>在控制台打印状态，在每个handler被请求的时候，在他们内部打印日志会很有帮助</p>
+<p>注：
+1）前两行（没有错误处理代码）可以替换成以下写法：
+<code>go
+http.ListenAndServe(":8080", http.HandlerFunc(HelloServer))</code>
+2）<code>fmt.Fprint</code>和<code>fmt.Fprintf</code>都是用来写入<code>http.ResponseWriter</code>的不错的函数（他们实现了<code>io.Writer</code>）。
+比如我们可以使用
+<code>go
+fmt.Fprintf(w, "&lt;h1&gt;%s&lt;h1&gt;&lt;div&gt;%s&lt;/div&gt;", title, body)</code>
+来构建一个非常简单的网页并插入<code>title</code>和<code>body</code>的值</p>
+<p>如果你需要更多复杂的替换，使用模板包（请看<a href="15.7.md.html">章节15.7</a>）
+3）如果你需要使用安全的https连接，使用<code>http.ListenAndServeTLS()</code>代替<code>http.ListenAndServe()</code>
+4）<code>http.HandleFunc("/", Hfunc)</code>中的<code>HFunc</code>是一个处理函数，如下：
+<code>go
+func HFunc(w http.ResponseWriter, req *http.Request) {
+    ...
+}</code>
+也可以使用这种方式：<code>http.Handle("/", http.HandlerFunc(HFunc))</code></p>
+<p>上边的<code>HandlerFunc</code>只是一个类型名称，它定义如下：
+<code>go
+type HandlerFunc func(ResponseWriter, *Request)</code>
+它是一个可以把普通的函数当做HTTP处理器的适配器。如果<code>f</code>函数声明的合适，<code>HandlerFunc(f)</code>就是一个执行了<code>f</code>函数的处理器对象。</p>
+<p><code>http.Handle</code>的第二个参数也可以是<code>T</code>的一个obj对象：<code>http.Handle("/", obj)</code>给T提供了<code>ServeHTTP</code>方法，实现了http的<code>Handler</code>接口：
+<code>go
+func (obj *Typ) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+    ...
+}</code>
+这个用法在<a href="15.8.md.html">章节15.8</a>类型<code>Counter</code>和<code>Chan</code>上使用过。只要实现了<code>http.Handler</code>，<code>http</code>包就可以处理任何HTTP请求。</p>
+<p>练习 15.2：<a href="exercises/chapter_15/webhello2.go">webhello2.go</a></p>
+<p>编写一个网页服务器监听端口9999，有如下处理函数：</p>
+<ul>
+<li>
+<p>当请求<code>http://localhost:9999/hello/Name</code>时，响应：<code>hello Name</code>(Name需是一个合法的姓，比如Chris或者Madeleine)</p>
+</li>
+<li>
+<p>当请求<code>http://localhost:9999/shouthello/Name</code>时，响应：<code>hello NAME</code></p>
+</li>
+</ul>
+<p>练习 15.3：<a href="exercises/chapter_15/hello_server.go">hello_server.go</a></p>
+<p>创建一个空结构<code>hello</code>并使它实现<code>http.Handler</code>。运行并测试。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一章：<a href="15.1.md.html">tcp服务器</a></li>
+<li>下一节：<a href="15.3.md.html">访问并读取页面数据</a></li>
+</ul>

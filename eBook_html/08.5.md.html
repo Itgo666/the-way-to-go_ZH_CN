@@ -1,0 +1,60 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>8.5 map 的排序</h1>
+<p>map 默认是无序的，不管是按照 key 还是按照 value 默认都不排序（详见第 8.3 节）。</p>
+<p>如果你想为 map 排序，需要将 key（或者 value）拷贝到一个切片，再对切片排序（使用 sort 包，详见第 7.6.6 节），然后可以使用切片的 for-range 方法打印出所有的 key 和 value。</p>
+<p>下面有一个示例：</p>
+<p>示例 8.6 <a href="examples/chapter_8/sort_map.go">sort_map.go</a>：</p>
+<p>```go
+// the telephone alphabet:
+package main
+import (
+    "fmt"
+    "sort"
+)</p>
+<p>var (
+    barVal = map[string]int{"alpha": 34, "bravo": 56, "charlie": 23,
+                            "delta": 87, "echo": 56, "foxtrot": 12,
+                            "golf": 34, "hotel": 16, "indio": 87,
+                            "juliet": 65, "kili": 43, "lima": 98}
+)</p>
+<p>func main() {
+    fmt.Println("unsorted:")
+    for k, v := range barVal {
+        fmt.Printf("Key: %v, Value: %v / ", k, v)
+    }
+    keys := make([]string, len(barVal))
+    i := 0
+    for k, _ := range barVal {
+        keys[i] = k
+        i++
+    }
+    sort.Strings(keys)
+    fmt.Println()
+    fmt.Println("sorted:")
+    for _, k := range keys {
+        fmt.Printf("Key: %v, Value: %v / ", k, barVal[k])
+    }
+}
+```</p>
+<p>输出结果：</p>
+<pre><code>unsorted:
+Key: bravo, Value: 56 / Key: echo, Value: 56 / Key: indio, Value: 87 / Key: juliet, Value: 65 / Key: alpha, Value: 34 / Key: charlie, Value: 23 / Key: delta, Value: 87 / Key: foxtrot, Value: 12 / Key: golf, Value: 34 / Key: hotel, Value: 16 / Key: kili, Value: 43 / Key: lima, Value: 98 /
+sorted:
+Key: alpha, Value: 34 / Key: bravo, Value: 56 / Key: charlie, Value: 23 / Key: delta, Value: 87 / Key: echo, Value: 56 / Key: foxtrot, Value: 12 / Key: golf, Value: 34 / Key: hotel, Value: 16 / Key: indio, Value: 87 / Key: juliet, Value: 65 / Key: kili, Value: 43 / Key: lima, Value: 98 /
+</code></pre>
+<p>但是如果你想要一个排序的列表你最好使用结构体切片，这样会更有效：</p>
+<p><code>go
+type name struct {
+    key string
+    value int
+}</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="08.4.md.html">map 类型的切片</a></li>
+<li>下一节：<a href="08.6.md.html">将 map 的键值对调</a></li>
+</ul>

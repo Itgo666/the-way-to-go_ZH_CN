@@ -1,0 +1,56 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>7.5 切片的复制与追加</h1>
+<p>如果想增加切片的容量，我们必须创建一个新的更大的切片并把原分片的内容都拷贝过来。下面的代码描述了从拷贝切片的 copy 函数和向切片追加新元素的 append 函数。</p>
+<p>示例 7.12 <a href="examples/chapter_7/copy_append_slice.go">copy_append_slice.go</a></p>
+<p>```go
+package main
+import "fmt"</p>
+<p>func main() {
+    sl_from := []int{1, 2, 3}
+    sl_to := make([]int, 10)</p>
+<pre><code>n := copy(sl_to, sl_from)
+fmt.Println(sl_to)
+fmt.Printf("Copied %d elements\n", n) // n == 3
+
+sl3 := []int{1, 2, 3}
+sl3 = append(sl3, 4, 5, 6)
+fmt.Println(sl3)
+</code></pre>
+<p>}
+```</p>
+<p><code>func append(s[]T, x ...T) []T</code> 其中 append 方法将 0 个或多个具有相同类型 s 的元素追加到切片后面并且返回新的切片；追加的元素必须和原切片的元素同类型。如果 s 的容量不足以存储新增元素，append 会分配新的切片来保证已有切片元素和新增元素的存储。因此，返回的切片可能已经指向一个不同的相关数组了。append 方法总是返回成功，除非系统内存耗尽了。</p>
+<p>如果你想将切片 y 追加到切片 x 后面，只要将第二个参数扩展成一个列表即可：<code>x = append(x, y...)</code>。</p>
+<p><strong>注意</strong>： append 在大多数情况下很好用，但是如果你想完全掌控整个追加过程，你可以实现一个这样的 AppendByte 方法：</p>
+<p><code>go
+func AppendByte(slice []byte, data ...byte) []byte {
+    m := len(slice)
+    n := m + len(data)
+    if n &gt; cap(slice) { // if necessary, reallocate
+        // allocate double what's needed, for future growth.
+        newSlice := make([]byte, (n+1)*2)
+        copy(newSlice, slice)
+        slice = newSlice
+    }
+    slice = slice[0:n]
+    copy(slice[m:n], data)
+    return slice
+}</code></p>
+<p><code>func copy(dst, src []T) int</code> copy 方法将类型为 T 的切片从源地址 src 拷贝到目标地址 dst，覆盖 dst 的相关元素，并且返回拷贝的元素个数。源地址和目标地址可能会有重叠。拷贝个数是 src 和 dst 的长度最小值。如果 src 是字符串那么元素类型就是 byte。如果你还想继续使用 src，在拷贝结束后执行 <code>src = dst</code>。</p>
+<p><strong>练习 7.9</strong></p>
+<p>给定一个slice<code>s []int</code> 和一个 int 类型的因子，扩展 s 使其长度为 <code>len(s) * factor</code>。</p>
+<p><strong>练习 7.10</strong></p>
+<p>用顺序函数过滤容器：s 是前 10 个整型的切片。构造一个函数 Filter，第一个参数是 s，第二个参数是一个 <code>fn func(int) bool</code>，返回满足函数 fn 的元素切片。通过 fn 测试方法测试当整型值是偶数时的情况。</p>
+<p><strong>练习 7.11</strong></p>
+<p>写一个函数 InsertStringSlice 将切片插入到另一个切片的指定位置。</p>
+<p><strong>练习 7.12</strong></p>
+<p>写一个函数 RemoveStringSlice 将从 start 到 end 索引的元素从切片 中移除。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="07.4.md.html">切片重组（reslice）</a></li>
+<li>下一节：<a href="07.6.md.html">字符串、数组和切片的应用</a></li>
+</ul>

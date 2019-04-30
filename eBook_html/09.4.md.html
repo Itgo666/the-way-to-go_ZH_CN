@@ -1,0 +1,50 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>9.4 精密计算和 big 包</h1>
+<p>我们知道有些时候通过编程的方式去进行计算是不精确的。如果你使用 Go 语言中的 float64 类型进行浮点运算，返回结果将精确到 15 位，足以满足大多数的任务。当对超出 int64 或者 uint64 类型这样的大数进行计算时，如果对精度没有要求，float32 或者 float64 可以胜任，但如果对精度有严格要求的时候，我们不能使用浮点数，在内存中它们只能被近似的表示。</p>
+<p>对于整数的高精度计算 Go 语言中提供了 big 包。其中包含了 math 包：有用来表示大整数的 <code>big.Int</code> 和表示大有理数的 <code>big.Rat</code> 类型（可以表示为 2/5 或 3.1416 这样的分数，而不是无理数或 π）。这些类型可以实现任意位类型的数字，只要内存足够大。缺点是更大的内存和处理开销使它们使用起来要比内置的数字类型慢很多。</p>
+<p>大的整型数字是通过 <code>big.NewInt(n)</code> 来构造的，其中 n 为 int64 类型整数。而大有理数是通过 <code>big.NewRat(N,D)</code> 方法构造。N（分子）和 D（分母）都是 int64 型整数。因为 Go 语言不支持运算符重载，所以所有大数字类型都有像是 <code>Add()</code> 和 <code>Mul()</code> 这样的方法。它们作用于作为 receiver 的整数和有理数，大多数情况下它们修改 receiver 并以 receiver 作为返回结果。因为没有必要创建 <code>big.Int</code> 类型的临时变量来存放中间结果，所以这样的运算可通过内存链式存储。</p>
+<p>示例 9.2 <a href="examples/chapter_9/big.go">big.go</a>：</p>
+<p>``` go
+// big.go
+package main</p>
+<p>import (
+    "fmt"
+    "math"
+    "math/big"
+)</p>
+<p>func main() {
+    // Here are some calculations with bigInts:
+    im := big.NewInt(math.MaxInt64)
+    in := im
+    io := big.NewInt(1956)
+    ip := big.NewInt(1)
+    ip.Mul(im, in).Add(ip, im).Div(ip, io)
+    fmt.Printf("Big Int: %v\n", ip)
+    // Here are some calculations with bigInts:
+    rm := big.NewRat(math.MaxInt64, 1956)
+    rn := big.NewRat(-1956, math.MaxInt64)
+    ro := big.NewRat(19, 56)
+    rp := big.NewRat(1111, 2222)
+    rq := big.NewRat(1, 1)
+    rq.Mul(rm, rn).Add(rq, ro).Mul(rq, rp)
+    fmt.Printf("Big Rat: %v\n", rq)
+}</p>
+<p>/<em> Output:
+Big Int: 43492122561469640008497075573153004
+Big Rat: -37/112
+</em>/
+```</p>
+<p>输出结果：</p>
+<pre><code>Big Int: 43492122561469640008497075573153004
+Big Rat: -37/112
+</code></pre>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="09.3.md.html">锁和 sync 包</a></li>
+<li>下一节：<a href="09.5.md.html">自定义包和可见性</a></li>
+</ul>

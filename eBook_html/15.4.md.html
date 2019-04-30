@@ -1,0 +1,57 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>15.4 写一个简单的网页应用</h1>
+<p>下边的程序在端口8088上启动了一个网页服务器；<code>SimpleServer</code>会处理<code>/test1</code>url使它在浏览器输出<code>hello world</code>。<code>FormServer</code>会处理<code>/test2</code>url：如果url最初由浏览器请求，那么它就是一个<code>GET</code>请求，并且返回一个<code>form</code>常量，包含了简单的<code>input</code>表单，这个表单里有一个文本框和一个提交按钮。当在文本框输入一些东西并点击提交按钮的时候，会发起一个<code>POST</code>请求。<code>FormServer</code>中的代码用到了<code>switch</code>来区分两种情况。在<code>POST</code>情况下，使用<code>request.FormValue("inp")</code>通过文本框的<code>name</code>属性<code>inp</code>来获取内容，并写回浏览器页面。在控制台启动程序并在浏览器中打开url<code>http://localhost:8088/test2</code>来测试这个程序：</p>
+<p>示例 15.10 <a href="examples/chapter_15/simple_webserver.go">simple_webserver.go</a></p>
+<p>```go
+package main</p>
+<p>import (
+    "io"
+    "net/http"
+)</p>
+<p>const form = <code>&lt;html&gt;&lt;body&gt;
+        &lt;form action="#" method="post" name="bar"&gt;
+            &lt;input type="text" name="in" /&gt;
+            &lt;input type="submit" value="submit"/&gt;
+        &lt;/form&gt;
+    &lt;/body&gt;&lt;/html&gt;</code></p>
+<p>/<em> handle a simple get request </em>/
+func SimpleServer(w http.ResponseWriter, request *http.Request) {
+    io.WriteString(w, "<h1>hello, world</h1>")
+}</p>
+<p>func FormServer(w http.ResponseWriter, request <em>http.Request) {
+    w.Header().Set("Content-Type", "text/html")
+    switch request.Method {
+    case "GET":
+        /</em> display the form to the user <em>/
+        io.WriteString(w, form)
+    case "POST":
+        /</em> handle the form data, note that ParseForm must
+           be called before we can extract form data */
+        //request.ParseForm();
+        //io.WriteString(w, request.Form["in"][0])
+        io.WriteString(w, request.FormValue("in"))
+    }
+}</p>
+<p>func main() {
+    http.HandleFunc("/test1", SimpleServer)
+    http.HandleFunc("/test2", FormServer)
+    if err := http.ListenAndServe(":8088", nil); err != nil {
+        panic(err)
+    }
+}
+<code>``
+注：当使用字符串常量表示html文本的时候，包含</code><html><body></body></html>`对于让浏览器识别它收到了一个html非常重要。</p>
+<p>更安全的做法是在处理器中使用<code>w.Header().Set("Content-Type", "text/html")</code>在写入返回之前将<code>header</code>的<code>content-type</code>设置为<code>text/html</code></p>
+<p><code>content-type</code>会让浏览器认为它可以使用函数<code>http.DetectContentType([]byte(form))</code>来处理收到的数据</p>
+<p>练习 15.6 [statistics.go]</p>
+<p>编写一个网页程序，可以让用户输入一连串的数字，然后将它们打印出来，计算出这些数字的均值和中值，就像下边这张截图一样：</p>
+<p><img alt="" src="../images/15.4_fig15.1.jpg?raw=true" /></p>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一章：<a href="15.4.md.html">访问并读取页面</a></li>
+<li>下一节：<a href="16.0.md.html">常见的陷阱与错误</a></li>
+</ul>

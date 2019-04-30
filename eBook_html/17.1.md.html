@@ -1,0 +1,63 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>17.1 关于逗号ok模式</h1>
+<p>在学习本书第二部分和第三部分时，我们经常在一个表达式返回2个参数时使用这种模式：<code>，ok</code>，第一个参数是一个值或者<code>nil</code>，第二个参数是<code>true</code>/<code>false</code>或者一个错误<code>error</code>。在一个需要赋值的<code>if</code>条件语句中，使用这种模式去检测第二个参数值会让代码显得优雅简洁。这种模式在go语言编码规范中非常重要。下面总结了所有使用这种模式的例子：</p>
+<p>（1）在函数返回时检测错误（参考<a href="05.2.md.html">第5.2小节</a>）:</p>
+<p>```go
+value, err := pack1.Func1(param1)</p>
+<p>if err != nil {
+    fmt.Printf(“Error %s in pack1.Func1 with parameter %v”, err.Error(), param1)
+    return err
+}</p>
+<p>// 函数Func1没有错误:
+Process(value)</p>
+<p>e.g.: os.Open(file) strconv.Atoi(str)
+```</p>
+<p>这段代码中的函数将错误返回给它的调用者，当函数执行成功时，返回的错误是<code>nil</code>，所以使用这种写法：</p>
+<p><code>go
+func SomeFunc() error {
+    …
+    if value, err := pack1.Func1(param1); err != nil {
+        …
+        return err
+    }
+    …
+    return nil
+}</code></p>
+<p>这种模式也常用于通过<code>defer</code>使程序从<code>panic</code>中恢复执行（参考<a href="17.2.md.html">第17.2（4）小节</a>）。</p>
+<p>要实现简洁的错误检测代码，更好的方式是使用闭包，参考<a href="16.10.md.html">第16.10.2小节</a></p>
+<p>（2）检测映射中是否存在一个键值（参考<a href="08.2.md.html">第8.2小节</a>）：<code>key1</code>在映射<code>map1</code>中是否有值？</p>
+<p><code>go
+if value, isPresent = map1[key1]; isPresent {
+        Process(value)
+}
+// key1不存在
+…</code></p>
+<p>（3）检测一个接口类型变量<code>varI</code>是否包含了类型<code>T</code>：类型断言（参考<a href="11.3.md.html">第11.3小节</a>）：</p>
+<p><code>go
+if value, ok := varI.(T); ok {
+    Process(value)
+}
+// 接口类型varI没有包含类型T</code></p>
+<p>（4）检测一个通道<code>ch</code>是否关闭（参考<a href="14.3.md.html">第14.3小节</a>）：</p>
+<p><code>go
+    for input := range ch {
+        Process(input)
+    }</code></p>
+<p>或者:</p>
+<p><code>go
+    for {
+        if input, open := &lt;-ch; !open {
+            break // 通道是关闭的
+        }
+        Process(input)
+    }</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="17.0.md.html">模式</a></li>
+<li>下一节：<a href="17.2.md.html">关于defer模式</a></li>
+</ul>

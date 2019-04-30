@@ -1,0 +1,46 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>18.1 字符串</h1>
+<p>（1）如何修改字符串中的一个字符：</p>
+<p><code>go
+str:="hello"
+c:=[]byte(str)
+c[0]='c'
+s2:= string(c) // s2 == "cello"</code></p>
+<p>（2）如何获取字符串的子串：</p>
+<p><code>go
+substr := str[n:m]</code></p>
+<p>（3）如何使用<code>for</code>或者<code>for-range</code>遍历一个字符串：</p>
+<p><code>go
+// gives only the bytes:
+for i:=0; i &lt; len(str); i++ {
+… = str[i]
+}
+// gives the Unicode characters:
+for ix, ch := range str {
+…
+}</code></p>
+<p>（4）如何获取一个字符串的字节数：<code>len(str)</code></p>
+<p>如何获取一个字符串的字符数：</p>
+<p>最快速：<code>utf8.RuneCountInString(str)</code> </p>
+<p><code>len([]rune(str))</code> </p>
+<p>（5）如何连接字符串：</p>
+<p>最快速：
+<code>with a bytes.Buffer</code>（参考<a href="07.2.md.html">章节7.2</a>）</p>
+<p><code>Strings.Join()</code>（参考<a href="04.7.md.html">章节4.7</a>）</p>
+<p>使用<code>+=</code>：</p>
+<p><code>go
+ str1 := "Hello " 
+ str2 := "World!"
+ str1 += str2 //str1 == "Hello World!"</code></p>
+<p>（6）如何解析命令行参数：使用<code>os</code>或者<code>flag</code>包</p>
+<p>（参考<a href="examples/chapter_12/fileinput.go">例12.4</a>）</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="18.0.md.html">出于性能考虑的实用代码片段</a></li>
+<li>下一节：<a href="18.2.md.html">数组和切片</a></li>
+</ul>

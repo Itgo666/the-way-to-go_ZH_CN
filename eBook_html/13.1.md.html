@@ -1,0 +1,134 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>13.1 错误处理</h1>
+<p>Go 有一个预先定义的 error 接口类型</p>
+<p><code>go
+type error interface {
+    Error() string
+}</code></p>
+<p>错误值用来表示异常状态；我们可以在 <a href="05.2.md.html">5.2 节</a>中看到它的标准用法。处理文件操作的例子可以在 12 章找到；我们将在 15 章看到网络操作的例子。errors 包中有一个 errorString 结构体实现了 error 接口。当程序处于错误状态时可以用 <code>os.Exit(1)</code> 来中止运行。</p>
+<h2>13.1.1 定义错误</h2>
+<p>任何时候当你需要一个新的错误类型，都可以用 <code>errors</code>（必须先 import）包的 <code>errors.New</code> 函数接收合适的错误信息来创建，像下面这样：</p>
+<p><code>go
+err := errors.New("math - square root of negative number")</code></p>
+<p>在示例 13.1 中你可以看到一个简单的用例：</p>
+<p>示例 13.1 <a href="examples/chapter_13/errors.go">errors.go</a>：</p>
+<p>```go
+// errors.go
+package main</p>
+<p>import (
+    "errors"
+    "fmt"
+)</p>
+<p>var errNotFound error = errors.New("Not found error")</p>
+<p>func main() {
+    fmt.Printf("error: %v", errNotFound)
+}
+// error: Not found error
+```</p>
+<p>可以把它用于计算平方根函数的参数测试：</p>
+<p><code>go
+func Sqrt(f float64) (float64, error) {
+    if f &lt; 0 {
+        return 0, errors.New ("math - square root of negative number")
+    }
+   // implementation of Sqrt
+}</code></p>
+<p>你可以像下面这样调用 Sqrt 函数：</p>
+<p><code>go
+if f, err := Sqrt(-1); err != nil {
+    fmt.Printf("Error: %s\n", err)
+}</code></p>
+<p>由于 <code>fmt.Printf</code> 会自动调用 <code>String()</code> 方法 （参见 <a href="10.7.md.html">10.7 节</a>），所以错误信息 “Error: math - square root of negative number” 会打印出来。通常（错误信息）都会有像 “Error:” 这样的前缀，所以你的错误信息不要以大写字母开头。</p>
+<p>在大部分情况下自定义错误结构类型很有意义的，可以包含除了（低层级的）错误信息以外的其它有用信息，例如，正在进行的操作（打开文件等），全路径或名字。看下面例子中 os.Open 操作触发的 PathError 错误：</p>
+<p>```go
+// PathError records an error and the operation and file path that caused it.
+type PathError struct {
+    Op string    // "open", "unlink", etc.
+    Path string  // The associated file.
+    Err error  // Returned by the system call.
+}</p>
+<p>func (e *PathError) String() string {
+    return e.Op + " " + e.Path + ": "+ e.Err.Error()
+}
+```</p>
+<p>如果有不同错误条件可能发生，那么对实际的错误使用类型断言或类型判断（type-switch）是很有用的，并且可以根据错误场景做一些补救和恢复操作。</p>
+<p><code>go
+//  err != nil
+if e, ok := err.(*os.PathError); ok {
+    // remedy situation
+}</code></p>
+<p>或：</p>
+<p><code>go
+switch err := err.(type) {
+    case ParseError:
+        PrintParseError(err)
+    case PathError:
+        PrintPathError(err)
+    ...
+    default:
+        fmt.Printf("Not a special error, just %s\n", err)
+}</code></p>
+<p>作为第二个例子考虑用 json 包的情况。当 json.Decode 在解析 JSON 文档发生语法错误时，指定返回一个 SyntaxError 类型的错误：</p>
+<p>```go
+type SyntaxError struct {
+    msg    string // description of error
+// error occurred after reading Offset bytes, from which line and columnnr can be obtained
+    Offset int64
+}</p>
+<p>func (e *SyntaxError) String() string { return e.msg }
+```</p>
+<p>在调用代码中你可以像这样用类型断言测试错误是不是上面的类型：</p>
+<p><code>go
+if serr, ok := err.(*json.SyntaxError); ok {
+    line, col := findLine(f, serr.Offset)
+    return fmt.Errorf("%s:%d:%d: %v", f.Name(), line, col, err)
+}</code></p>
+<p>包也可以用额外的方法（methods）定义特定的错误，比如 net.Error：</p>
+<p><code>go
+package net
+type Error interface {
+    Timeout() bool   // Is the error a timeout?
+    Temporary() bool // Is the error temporary?
+}</code></p>
+<p>在 <a href="15.1.md.html">15.1 节</a> 我们可以看到怎么使用它。</p>
+<p>正如你所看到的一样，所有的例子都遵循同一种命名规范：错误类型以 “Error” 结尾，错误变量以 “err” 或 “Err” 开头。</p>
+<p>syscall 是低阶外部包，用来提供系统基本调用的原始接口。它们返回整数的错误码；类型 syscall.Errno 实现了 Error 接口。</p>
+<p>大部分 syscall 函数都返回一个结果和可能的错误，比如：</p>
+<p><code>go
+r, err := syscall.Open(name, mode, perm)
+if err != 0 {
+    fmt.Println(err.Error())
+}</code></p>
+<p>os 包也提供了一套像 os.EINAL 这样的标准错误，它们基于 syscall 错误：</p>
+<p><code>go
+var (
+    EPERM       Error = Errno(syscall.EPERM)
+    ENOENT      Error = Errno(syscall.ENOENT)
+    ESRCH       Error = Errno(syscall.ESRCH)
+    EINTR       Error = Errno(syscall.EINTR)
+    EIO         Error = Errno(syscall.EIO)
+    ...
+)</code></p>
+<h2>13.1.2 用 fmt 创建错误对象</h2>
+<p>通常你想要返回包含错误参数的更有信息量的字符串，例如：可以用 <code>fmt.Errorf()</code> 来实现：它和 fmt.Printf() 完全一样，接收一个或多个格式占位符的格式化字符串和相应数量的占位变量。和打印信息不同的是它用信息生成错误对象。</p>
+<p>比如在前面的平方根例子中使用：</p>
+<p><code>go
+if f &lt; 0 {
+    return 0, fmt.Errorf("math: square root of negative number %g", f)
+}</code></p>
+<p>第二个例子：从命令行读取输入时，如果加了 help 标志，我们可以用有用的信息产生一个错误：</p>
+<p><code>go
+if len(os.Args) &gt; 1 &amp;&amp; (os.Args[1] == "-h" || os.Args[1] == "--help") {
+    err = fmt.Errorf("usage: %s infile.txt outfile.txt", filepath.Base(os.Args[0]))
+    return
+}</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="13.0.md.html">错误处理与测试</a></li>
+<li>下一节：<a href="13.2.md.html">运行时异常和 panic</a></li>
+</ul>

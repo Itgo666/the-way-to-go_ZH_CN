@@ -1,0 +1,104 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>2.3 在 Linux 上安装 Go</h1>
+<p>如果你能够自己下载并编译 Go 的源代码的话,对你来说是非常有教育意义的，你可以根据这个页面找到安装指南和下载地址：<a href="http://golang.org/doc/install">Download the Go distribution</a>。</p>
+<p>我们接下来也会带你一步步地完成安装过程。</p>
+<ol>
+<li>
+<p>设置 Go 环境变量</p>
+<p>我们在 Linux 系统下一般通过文件 <code>$HOME/.bashrc</code> 配置自定义环境变量，根据不同的发行版也可能是文件 <code>$HOME/.profile</code>，然后使用 gedit 或 vi 来编辑文件内容。</p>
+<pre><code>export GOROOT=$HOME/go
+</code></pre>
+<p>为了确保相关文件在文件系统的任何地方都能被调用，你还需要添加以下内容：</p>
+<pre><code>export PATH=$PATH:$GOROOT/bin
+</code></pre>
+<p>在开发 Go 项目时，你还需要一个环境变量来保存你的工作目录。</p>
+<pre><code>export GOPATH=$HOME/Applications/Go
+</code></pre>
+<p><code>$GOPATH</code> 可以包含多个工作目录，取决于你的个人情况。如果你设置了多个工作目录，那么当你在之后使用 <code>go get</code>（远程包安装命令）时远程包将会被安装在第一个目录下。</p>
+<p>在完成这些设置后，你需要在终端输入指令 <code>source .bashrc</code> 以使这些环境变量生效。然后重启终端，输入 <code>go env</code> 和 <code>env</code> 来检查环境变量是否设置正确。</p>
+</li>
+<li>
+<p>安装 C 工具</p>
+<p>Go 的工具链是用 C 语言编写的，因此在安装 Go 之前你需要先安装相关的 C 工具。如果你使用的是 Ubuntu 的话，你可以在终端输入以下指令（ <strong>译者注：由于网络环境的特殊性，你可能需要将每个工具分开安装</strong> ）。</p>
+<pre><code>sudo apt-get install bison ed gawk gcc libc6-dev make
+</code></pre>
+<p>你可以在其它发行版上使用 RPM 之类的工具。</p>
+</li>
+<li>
+<p>获取 Go 源代码</p>
+<p>从 <a href="https://golang.org/dl/">官方页面</a> 或 <a href="http://www.golangtc.com/download">国内镜像</a> 下载 Go 的源码包到你的计算机上，然后将解压后的目录 <code>go</code> 通过命令移动到 <code>$GOROOT</code> 所指向的位置。</p>
+<pre><code>wget https://storage.googleapis.com/golang/go&lt;VERSION&gt;.src.tar.gz
+tar -zxvf go&lt;VERSION&gt;.src.tar.gz
+sudo mv go $GOROOT
+</code></pre>
+</li>
+<li>
+<p>构建 Go</p>
+<p>在终端使用以下指令来进行编译工作。</p>
+<pre><code>cd $GOROOT/src
+./all.bash
+</code></pre>
+<p>在完成编译之后（通常在 1 分钟以内，如果你在 B 型树莓派上编译，一般需要 1 个小时），你会在终端看到如下信息被打印：</p>
+<p><img alt="" src="../images/2.3.allbash.png?raw=true" /></p>
+<p>图 2.3 完成编译后在终端打印的信息</p>
+<p><strong>注意事项</strong> </p>
+<p>在测试 <code>net/http</code> 包时有一个测试会尝试连接 <code>google.com</code>，你可能会看到如下所示的一个无厘头的错误报告：</p>
+<pre><code>‘make[2]: Leaving directory `/localusr/go/src/pkg/net’
+</code></pre>
+<p>如果你正在使用一个带有防火墙的机器，我建议你可以在编译过程中暂时关闭防火墙，以避免不必要的错误。</p>
+<p>解决这个问题的另一个办法是通过设置环境变量 <code>$DISABLE_NET_TESTS</code> 来告诉构建工具忽略 <code>net/http</code> 包的相关测试：</p>
+<pre><code>export DISABLE_NET_TESTS=1
+</code></pre>
+<p>如果你完全不想运行包的测试，你可以直接运行 <code>./make.bash</code> 来进行单纯的构建过程。</p>
+</li>
+<li>
+<p>测试安装</p>
+<p>使用你最喜爱的编辑器来输入以下内容，并保存为文件名 <code>hello_world1.go</code>。</p>
+<p>示例 2.1 <a href="examples/chapter_2/hello_world1.go">hello_world1.go</a></p>
+<p>```go
+package main</p>
+<p>func main() {
+    println("Hello", "world")
+}
+```</p>
+<p>切换相关目录到下，然后执行指令 <code>go run hello_world1.go</code>，将会打印信息：<code>Hello, world</code>。</p>
+</li>
+<li>
+<p>验证安装版本</p>
+<p>你可以通过在终端输入指令 <code>go version</code> 来打印 Go 的版本信息。</p>
+<p>如果你想要通过 Go 代码在运行时检测版本，可以通过以下例子实现。</p>
+<p>示例 2.2 <a href="examples/chapter_2/version.go">version.go</a></p>
+<p>```go
+package main</p>
+<p>import (
+    "fmt"
+    "runtime"
+)</p>
+<p>func main() {
+    fmt.Printf("%s", runtime.Version())
+}
+```</p>
+<p>这段代码将会输出 <code>go1.4.2</code> 或类似字符串。</p>
+</li>
+<li>
+<p>更新版本</p>
+<p>你可以在 <a href="http://golang.org/doc/devel/release.html">发布历史</a> 页面查看到最新的稳定版。</p>
+<p>当前最新的稳定版 Go 1 系列于 2012 年 3 月 28 日发布。</p>
+<p>Go 的源代码有以下三个分支：</p>
+<pre><code>- Go release：最新稳定版，实际开发最佳选择
+- Go weekly：包含最近更新的版本，一般每周更新一次
+- Go tip：永远保持最新的版本，相当于内测版
+</code></pre>
+<p>当你在使用不同的版本时，注意官方博客发布的信息，因为你所查阅的文档可能和你正在使用的版本不相符。</p>
+</li>
+</ol>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="02.2.md.html">Go 环境变量</a></li>
+<li>下一节：<a href="02.4.md.html">在 Mac OS X 上安装 Go</a></li>
+</ul>

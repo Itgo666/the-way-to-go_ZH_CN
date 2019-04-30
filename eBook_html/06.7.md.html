@@ -1,0 +1,47 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>6.7 将函数作为参数</h1>
+<p>函数可以作为其它函数的参数进行传递，然后在其它函数内调用执行，一般称之为回调。下面是一个将函数作为参数的简单例子（function_parameter.go）：</p>
+<p>```go
+package main</p>
+<p>import (
+    "fmt"
+)</p>
+<p>func main() {
+    callback(1, Add)
+}</p>
+<p>func Add(a, b int) {
+    fmt.Printf("The sum of %d and %d is: %d\n", a, b, a+b)
+}</p>
+<p>func callback(y int, f func(int, int)) {
+    f(y, 2) // this becomes Add(1, 2)
+}
+```</p>
+<p>输出：</p>
+<pre><code>The sum of 1 and 2 is: 3
+</code></pre>
+<p>将函数作为参数的最好的例子是函数 <code>strings.IndexFunc()</code>：</p>
+<p>该函数的签名是 <code>func IndexFunc(s string, f func(c int) bool) int</code>，它的返回值是在函数 <code>f(c)</code> 返回 true、-1 或从未返回时的索引值。</p>
+<p>例如 <code>strings.IndexFunc(line, unicode.IsSpace)</code> 就会返回 <code>line</code> 中第一个空白字符的索引值。当然，您也可以书写自己的函数：</p>
+<p><code>go
+func IsAscii(c int) bool {
+    if c &gt; 255 {
+        return false
+    }
+    return true
+}</code></p>
+<p>在第 14.10.1 节中，我们将会根据一个客户端/服务端程序作为示例对这个用法进行深入讨论。</p>
+<p><code>go
+type binOp func(a, b int) int
+func run(op binOp, req *Request) { … }</code></p>
+<p><strong>练习 6.7</strong></p>
+<p>包 <code>strings</code> 中的 <code>Map</code> 函数和 <code>strings.IndexFunc()</code> 一样都是非常好的使用例子。请学习它的源代码并基于该函数书写一个程序，要求将指定文本内的所有非 ASCII 字符替换成 <code>?</code> 或空格。您需要怎么做才能删除这些字符呢？</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="06.6.md.html">递归函数</a></li>
+<li>下一节：<a href="06.8.md.html">闭包</a></li>
+</ul>

@@ -1,0 +1,179 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>11.14 结构体、集合和高阶函数</h1>
+<p>通常你在应用中定义了一个结构体，那么你也可能需要这个结构体的（指针）对象集合，比如：</p>
+<p>```go
+type Any interface{}
+type Car struct {
+    Model        string
+    Manufacturer string
+    BuildYear    int
+    // ...
+}</p>
+<p>type Cars []*Car
+```</p>
+<p>然后我们就可以使用高阶函数，实际上也就是把函数作为定义所需方法（其他函数）的参数，例如：</p>
+<p>1）定义一个通用的 <code>Process()</code> 函数，它接收一个作用于每一辆 car 的 f 函数作参数：</p>
+<p><code>go
+// Process all cars with the given function f:
+func (cs Cars) Process(f func(car *Car)) {
+    for _, c := range cs {
+        f(c)
+    }
+}</code></p>
+<p>2）在上面的基础上，实现一个查找函数来获取子集合，并在 <code>Process()</code> 中传入一个闭包执行（这样就可以访问局部切片 <code>cars</code>）：</p>
+<p>```go
+// Find all cars matching a given criteria.
+func (cs Cars) FindAll(f func(car *Car) bool) Cars {</p>
+<pre><code>cars := make([]*Car, 0)
+cs.Process(func(c *Car) {
+    if f(c) {
+        cars = append(cars, c)
+    }
+})
+return cars
+</code></pre>
+<p>}
+```</p>
+<p>3）实现 Map 功能，产出除 car 对象以外的东西：</p>
+<p><code>go
+// Process cars and create new data.
+func (cs Cars) Map(f func(car *Car) Any) []Any {
+    result := make([]Any, 0)
+    ix := 0
+    cs.Process(func(c *Car) {
+        result[ix] = f(c)
+        ix++
+    })
+    return result
+}</code></p>
+<p>现在我们可以定义下面这样的具体查询：</p>
+<p><code>go
+allNewBMWs := allCars.FindAll(func(car *Car) bool {
+    return (car.Manufacturer == "BMW") &amp;&amp; (car.BuildYear &gt; 2010)
+})</code></p>
+<p>4）我们也可以根据参数返回不同的函数。也许我们想根据不同的厂商添加汽车到不同的集合，但是这（这种映射关系）可能会是会改变的。所以我们可以定义一个函数来产生特定的添加函数和 map 集：</p>
+<p>```go
+func MakeSortedAppender(manufacturers []string)(func(car <em>Car),map[string]Cars) {
+    // Prepare maps of sorted cars.
+    sortedCars := make(map[string]Cars)
+    for _, m := range manufacturers {
+        sortedCars[m] = make([]</em>Car, 0)
+    }
+    sortedCars["Default"] = make([]<em>Car, 0)
+    // Prepare appender function:
+    appender := func(c </em>Car) {
+        if _, ok := sortedCars[c.Manufacturer]; ok {
+            sortedCars[c.Manufacturer] = append(sortedCars[c.Manufacturer], c)
+        } else {
+            sortedCars["Default"] = append(sortedCars["Default"], c)
+        }</p>
+<pre><code>}
+return appender, sortedCars
+</code></pre>
+<p>}
+```</p>
+<p>现在我们可以用它把汽车分类为独立的集合，像这样：</p>
+<p><code>go
+manufacturers := []string{"Ford", "Aston Martin", "Land Rover", "BMW", "Jaguar"}
+sortedAppender, sortedCars := MakeSortedAppender(manufacturers)
+allUnsortedCars.Process(sortedAppender)
+BMWCount := len(sortedCars["BMW"])</code></p>
+<p>我们让这些代码在下面的程序 cars.go 中执行：</p>
+<p>示例 11.18 <a href="examples/chapter_11/cars.go">cars.go</a>：</p>
+<p>```go
+// cars.go
+package main</p>
+<p>import (
+    "fmt"
+)</p>
+<p>type Any interface{}
+type Car struct {
+    Model        string
+    Manufacturer string
+    BuildYear    int
+    // ...
+}
+type Cars []*Car</p>
+<p>func main() {
+    // make some cars:
+    ford := &amp;Car{"Fiesta", "Ford", 2008}
+    bmw := &amp;Car{"XL 450", "BMW", 2011}
+    merc := &amp;Car{"D600", "Mercedes", 2009}
+    bmw2 := &amp;Car{"X 800", "BMW", 2008}
+    // query:
+    allCars := Cars([]<em>Car{ford, bmw, merc, bmw2})
+    allNewBMWs := allCars.FindAll(func(car </em>Car) bool {
+        return (car.Manufacturer == "BMW") &amp;&amp; (car.BuildYear &gt; 2010)
+    })
+    fmt.Println("AllCars: ", allCars)
+    fmt.Println("New BMWs: ", allNewBMWs)
+    //
+    manufacturers := []string{"Ford", "Aston Martin", "Land Rover", "BMW", "Jaguar"}
+    sortedAppender, sortedCars := MakeSortedAppender(manufacturers)
+    allCars.Process(sortedAppender)
+    fmt.Println("Map sortedCars: ", sortedCars)
+    BMWCount := len(sortedCars["BMW"])
+    fmt.Println("We have ", BMWCount, " BMWs")
+}</p>
+<p>// Process all cars with the given function f:
+func (cs Cars) Process(f func(car *Car)) {
+    for _, c := range cs {
+        f(c)
+    }
+}</p>
+<p>// Find all cars matching a given criteria.
+func (cs Cars) FindAll(f func(car <em>Car) bool) Cars {
+    cars := make([]</em>Car, 0)</p>
+<pre><code>cs.Process(func(c *Car) {
+    if f(c) {
+        cars = append(cars, c)
+    }
+})
+return cars
+</code></pre>
+<p>}</p>
+<p>// Process cars and create new data.
+func (cs Cars) Map(f func(car <em>Car) Any) []Any {
+    result := make([]Any, len(cs))
+    ix := 0
+    cs.Process(func(c </em>Car) {
+        result[ix] = f(c)
+        ix++
+    })
+    return result
+}</p>
+<p>func MakeSortedAppender(manufacturers []string) (func(car *Car), map[string]Cars) {
+    // Prepare maps of sorted cars.
+    sortedCars := make(map[string]Cars)</p>
+<pre><code>for _, m := range manufacturers {
+    sortedCars[m] = make([]*Car, 0)
+}
+sortedCars["Default"] = make([]*Car, 0)
+
+// Prepare appender function:
+appender := func(c *Car) {
+    if _, ok := sortedCars[c.Manufacturer]; ok {
+        sortedCars[c.Manufacturer] = append(sortedCars[c.Manufacturer], c)
+    } else {
+        sortedCars["Default"] = append(sortedCars["Default"], c)
+    }
+}
+return appender, sortedCars
+</code></pre>
+<p>}
+```</p>
+<p>输出：</p>
+<p><code>AllCars:  [0xf8400038a0 0xf840003bd0 0xf840003ba0 0xf840003b70]
+New BMWs:  [0xf840003bd0]
+Map sortedCars:  map[Default:[0xf840003ba0] Jaguar:[] Land Rover:[] BMW:[0xf840003bd0 0xf840003b70] Aston Martin:[] Ford:[0xf8400038a0]]
+We have  2  BMWs</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="11.13.md.html">Go 中的面向对象</a></li>
+<li>下一章：<a href="12.0.md.html">读写数据</a></li>
+</ul>

@@ -1,0 +1,65 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<p>﻿# 11.4 类型判断：type-switch</p>
+<p>接口变量的类型也可以使用一种特殊形式的 <code>switch</code> 来检测：<strong>type-switch</strong> （下面是示例 11.4 的第二部分）：</p>
+<p><code>go
+switch t := areaIntf.(type) {
+case *Square:
+    fmt.Printf("Type Square %T with value %v\n", t, t)
+case *Circle:
+    fmt.Printf("Type Circle %T with value %v\n", t, t)
+case nil:
+    fmt.Printf("nil value: nothing to check?\n")
+default:
+    fmt.Printf("Unexpected type %T\n", t)
+}</code></p>
+<p>输出：</p>
+<pre><code>Type Square *main.Square with value &amp;{5}
+</code></pre>
+<p>变量 <code>t</code> 得到了 <code>areaIntf</code> 的值和类型， 所有 <code>case</code> 语句中列举的类型（<code>nil</code> 除外）都必须实现对应的接口（在上例中即 <code>Shaper</code>），如果被检测类型没有在 <code>case</code> 语句列举的类型中，就会执行 <code>default</code> 语句。</p>
+<p>可以用 <code>type-switch</code> 进行运行时类型分析，但是在 <code>type-switch</code> 不允许有 <code>fallthrough</code> 。</p>
+<p>如果仅仅是测试变量的类型，不用它的值，那么就可以不需要赋值语句，比如：</p>
+<p><code>go
+switch areaIntf.(type) {
+case *Square:
+    // TODO
+case *Circle:
+    // TODO
+...
+default:
+    // TODO
+}</code></p>
+<p>下面的代码片段展示了一个类型分类函数，它有一个可变长度参数，可以是任意类型的数组，它会根据数组元素的实际类型执行不同的动作：</p>
+<p><code>go
+func classifier(items ...interface{}) {
+    for i, x := range items {
+        switch x.(type) {
+        case bool:
+            fmt.Printf("Param #%d is a bool\n", i)
+        case float64:
+            fmt.Printf("Param #%d is a float64\n", i)
+        case int, int64:
+            fmt.Printf("Param #%d is a int\n", i)
+        case nil:
+            fmt.Printf("Param #%d is a nil\n", i)
+        case string:
+            fmt.Printf("Param #%d is a string\n", i)
+        default:
+            fmt.Printf("Param #%d is unknown\n", i)
+        }
+    }
+}</code></p>
+<p>可以这样调用此方法：<code>classifier(13, -14.3, "BELGIUM", complex(1, 2), nil, false)</code> 。</p>
+<p>在处理来自于外部的、类型未知的数据时，比如解析诸如 JSON 或 XML 编码的数据，类型测试和转换会非常有用。</p>
+<p>在示例 12.17（xml.go）中解析 XML 文档时，我们就会用到 <code>type-switch</code>。</p>
+<p><strong>练习 11.4</strong> simple_interface2.go：</p>
+<p>接着练习 11.1 中的内容，创建第二个类型 <code>RSimple</code>，它也实现了接口 <code>Simpler</code>，写一个函数 <code>fi</code>，使它可以区分 <code>Simple</code> 和 <code>RSimple</code> 类型的变量。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="11.3.md.html">类型断言：如何检测和转换接口变量的类型</a></li>
+<li>下一节：<a href="11.5.md.html">测试一个值是否实现了某个接口</a></li>
+</ul>

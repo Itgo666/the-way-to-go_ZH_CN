@@ -1,0 +1,98 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>4.3 常量</h1>
+<p>常量使用关键字 <code>const</code> 定义，用于存储不会改变的数据。</p>
+<p>存储在常量中的数据类型只可以是布尔型、数字型（整数型、浮点型和复数）和字符串型。</p>
+<p>常量的定义格式：<code>const identifier [type] = value</code>，例如： </p>
+<p><code>go
+const Pi = 3.14159</code></p>
+<p>在 Go 语言中，你可以省略类型说明符 <code>[type]</code>，因为编译器可以根据变量的值来推断其类型。</p>
+<ul>
+<li>显式类型定义： <code>const b string = "abc"</code>   </li>
+<li>隐式类型定义： <code>const b = "abc"</code></li>
+</ul>
+<p>一个没有指定类型的常量被使用时，会根据其使用环境而推断出它所需要具备的类型。换句话说，未定义类型的常量会在必要时刻根据上下文来获得相关类型。</p>
+<p><code>go
+var n int
+f(n + 5) // 无类型的数字型常量 “5” 它的类型在这里变成了 int</code></p>
+<p>常量的值必须是能够在编译时就能够确定的；你可以在其赋值表达式中涉及计算过程，但是所有用于计算的值必须在编译期间就能获得。</p>
+<ul>
+<li>正确的做法：<code>const c1 = 2/3</code>  </li>
+<li>错误的做法：<code>const c2 = getNumber()</code> // 引发构建错误: <code>getNumber() used as value</code></li>
+</ul>
+<p><strong>因为在编译期间自定义函数均属于未知，因此无法用于常量的赋值，但内置函数可以使用，如：len()。</strong></p>
+<p>数字型的常量是没有大小和符号的，并且可以使用任何精度而不会导致溢出：</p>
+<p><code>go
+const Ln2= 0.693147180559945309417232121458\
+            176568075500134360255254120680009
+const Log2E= 1/Ln2 // this is a precise reciprocal
+const Billion = 1e9 // float constant
+const hardEight = (1 &lt;&lt; 100) &gt;&gt; 97</code></p>
+<p>根据上面的例子我们可以看到，反斜杠 <code>\</code> 可以在常量表达式中作为多行的连接符使用。</p>
+<p>与各种类型的数字型变量相比，你无需担心常量之间的类型转换问题，因为它们都是非常理想的数字。</p>
+<p>不过需要注意的是，当常量赋值给一个精度过小的数字型变量时，可能会因为无法正确表达常量所代表的数值而导致溢出，这会在编译期间就引发错误。另外，常量也允许使用并行赋值的形式：</p>
+<p><code>go
+const beef, two, c = "eat", 2, "veg"
+const Monday, Tuesday, Wednesday, Thursday, Friday, Saturday = 1, 2, 3, 4, 5, 6
+const (
+    Monday, Tuesday, Wednesday = 1, 2, 3
+    Thursday, Friday, Saturday = 4, 5, 6
+)</code></p>
+<p>常量还可以用作枚举：</p>
+<p><code>go
+const (
+    Unknown = 0
+    Female = 1
+    Male = 2
+)</code></p>
+<p>现在，数字 0、1 和 2 分别代表未知性别、女性和男性。这些枚举值可以用于测试某个变量或常量的实际值，比如使用 switch/case 结构 (第 5.3 节).</p>
+<p>在这个例子中，<code>iota</code> 可以被用作枚举值：</p>
+<p><code>go
+const (
+    a = iota
+    b = iota
+    c = iota
+)</code></p>
+<p>第一个 <code>iota</code> 等于 0，每当 <code>iota</code> 在新的一行被使用时，它的值都会自动加 1；所以 <code>a=0, b=1, c=2</code> 可以简写为如下形式：</p>
+<p><code>go
+const (
+    a = iota
+    b
+    c
+)</code></p>
+<p>（ <strong>译者注：关于 iota 的使用涉及到非常复杂多样的情况，这里作者解释的并不清晰，因为很难对 iota 的用法进行直观的文字描述。如希望进一步了解，请观看视频教程 <a href="https://github.com/Unknwon/go-fundamental-programming">《Go编程基础》</a> <a href="https://github.com/Unknwon/go-fundamental-programming/blob/master/lectures/lecture4.md.html">第四课：常量与运算符</a></strong> ）</p>
+<p><code>iota</code> 也可以用在表达式中，如：<code>iota + 50</code>。在每遇到一个新的常量块或单个常量声明时， <code>iota</code> 都会重置为 0（ <strong>简单地讲，每遇到一次 const 关键字，iota 就重置为 0</strong> ）。</p>
+<p>当然，常量之所以为常量就是恒定不变的量，因此我们无法在程序运行过程中修改它的值；如果你在代码中试图修改常量的值则会引发编译错误。</p>
+<p>引用 <code>time</code> 包中的一段代码作为示例：一周中每天的名称。</p>
+<p><code>go
+const (
+    Sunday = iota
+    Monday
+    Tuesday
+    Wednesday
+    Thursday
+    Friday
+    Saturday
+)</code></p>
+<p>你也可以使用某个类型作为枚举常量的类型：</p>
+<p>```go
+type Color int</p>
+<p>const (
+    RED Color = iota // 0
+    ORANGE // 1
+    YELLOW // 2
+    GREEN // ..
+    BLUE
+    INDIGO
+    VIOLET // 6
+)
+```</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="04.2.md.html">Go 程序的基本结构和要素</a></li>
+<li>下一节：<a href="04.4.md.html">变量</a></li>
+</ul>

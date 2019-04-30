@@ -1,0 +1,30 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>18.4 结构体</h1>
+<p>创建：</p>
+<p><code>go
+type struct1 struct {
+    field1 type1
+    field2 type2
+    …
+}
+ms := new(struct1)</code></p>
+<p>初始化：</p>
+<p><code>go
+ms := &amp;struct1{10, 15.5, "Chris"}</code></p>
+<p>当结构体的命名以大写字母开头时，该结构体在包外可见。
+通常情况下，为每个结构体定义一个构建函数，并推荐使用构建函数初始化结构体（参考<a href="examples/chapter_10/person.go">例10.2</a>）：</p>
+<p><code>go    
+ms := Newstruct1{10, 15.5, "Chris"}
+func Newstruct1(n int, f float32, name string) *struct1 {
+    return &amp;struct1{n, f, name} 
+}</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="18.3.md.html">映射</a></li>
+<li>下一节：<a href="18.5.md.html">接口</a></li>
+</ul>

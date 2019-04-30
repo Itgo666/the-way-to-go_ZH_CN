@@ -1,0 +1,123 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>12.1 读取用户的输入</h1>
+<p>我们如何读取用户的键盘（控制台）输入呢？从键盘和标准输入 <code>os.Stdin</code> 读取输入，最简单的办法是使用 <code>fmt</code> 包提供的 Scan 和 Sscan 开头的函数。请看以下程序：</p>
+<p>示例 12.1 <a href="examples/chapter_12/readinput1.go">readinput1.go</a>：</p>
+<p>```go
+// 从控制台读取输入:
+package main
+import "fmt"</p>
+<p>var (
+   firstName, lastName, s string
+   i int
+   f float32
+   input = "56.12 / 5212 / Go"
+   format = "%f / %d / %s"
+)</p>
+<p>func main() {
+   fmt.Println("Please enter your full name: ")
+   fmt.Scanln(&amp;firstName, &amp;lastName)
+   // fmt.Scanf("%s %s", &amp;firstName, &amp;lastName)
+   fmt.Printf("Hi %s %s!\n", firstName, lastName) // Hi Chris Naegels
+   fmt.Sscanf(input, format, &amp;f, &amp;i, &amp;s)
+   fmt.Println("From the string we read: ", f, i, s)
+    // 输出结果: From the string we read: 56.12 5212 Go
+}
+```</p>
+<p><code>Scanln</code> 扫描来自标准输入的文本，将空格分隔的值依次存放到后续的参数内，直到碰到换行。<code>Scanf</code> 与其类似，除了 <code>Scanf</code> 的第一个参数用作格式字符串，用来决定如何读取。<code>Sscan</code> 和以 <code>Sscan</code> 开头的函数则是从字符串读取，除此之外，与 <code>Scanf</code> 相同。如果这些函数读取到的结果与您预想的不同，您可以检查成功读入数据的个数和返回的错误。</p>
+<p>您也可以使用 <code>bufio</code> 包提供的缓冲读取（buffered reader）来读取数据，正如以下例子所示：</p>
+<p>示例 12.2 <a href="examples/chapter_12/readinput2.go">readinput2.go</a>：</p>
+<p>```go
+package main
+import (
+    "fmt"
+    "bufio"
+    "os"
+)</p>
+<p>var inputReader *bufio.Reader
+var input string
+var err error</p>
+<p>func main() {
+    inputReader = bufio.NewReader(os.Stdin)
+    fmt.Println("Please enter some input: ")
+    input, err = inputReader.ReadString('\n')
+    if err == nil {
+        fmt.Printf("The input was: %s\n", input)
+    }
+}
+```</p>
+<p><code>inputReader</code> 是一个指向 <code>bufio.Reader</code> 的指针。<code>inputReader := bufio.NewReader(os.Stdin)</code> 这行代码，将会创建一个读取器，并将其与标准输入绑定。</p>
+<p><code>bufio.NewReader()</code> 构造函数的签名为：<code>func NewReader(rd io.Reader) *Reader</code></p>
+<p>该函数的实参可以是满足 <code>io.Reader</code> 接口的任意对象（任意包含有适当的 <code>Read()</code> 方法的对象，请参考<a href="11.8.md.html">章节11.8</a>），函数返回一个新的带缓冲的 <code>io.Reader</code> 对象，它将从指定读取器（例如 <code>os.Stdin</code>）读取内容。</p>
+<p>返回的读取器对象提供一个方法 <code>ReadString(delim byte)</code>，该方法从输入中读取内容，直到碰到 <code>delim</code> 指定的字符，然后将读取到的内容连同 <code>delim</code> 字符一起放到缓冲区。</p>
+<p><code>ReadString</code> 返回读取到的字符串，如果碰到错误则返回 <code>nil</code>。如果它一直读到文件结束，则返回读取到的字符串和 <code>io.EOF</code>。如果读取过程中没有碰到 <code>delim</code> 字符，将返回错误 <code>err != nil</code>。</p>
+<p>在上面的例子中，我们会读取键盘输入，直到回车键（\n）被按下。</p>
+<p>屏幕是标准输出 <code>os.Stdout</code>；<code>os.Stderr</code> 用于显示错误信息，大多数情况下等同于 <code>os.Stdout</code>。</p>
+<p>一般情况下，我们会省略变量声明，而使用 <code>:=</code>，例如：</p>
+<p><code>go
+inputReader := bufio.NewReader(os.Stdin)
+input, err := inputReader.ReadString('\n')</code></p>
+<p>我们将从现在开始使用这种写法。</p>
+<p>第二个例子从键盘读取输入，使用了 <code>switch</code> 语句：</p>
+<p>示例 12.3 <a href="examples/chapter_12/switch_input.go">switch_input.go</a>：</p>
+<p>```go
+package main
+import (
+    "fmt"
+    "os"
+    "bufio"
+)</p>
+<p>func main() {
+    inputReader := bufio.NewReader(os.Stdin)
+    fmt.Println("Please enter your name:")
+    input, err := inputReader.ReadString('\n')</p>
+<pre><code>if err != nil {
+    fmt.Println("There were errors reading, exiting program.")
+    return
+}
+
+fmt.Printf("Your name is %s", input)
+// For Unix: test with delimiter "\n", for Windows: test with "\r\n"
+switch input {
+case "Philip\r\n":  fmt.Println("Welcome Philip!")
+case "Chris\r\n":   fmt.Println("Welcome Chris!")
+case "Ivo\r\n":     fmt.Println("Welcome Ivo!")
+default: fmt.Printf("You are not welcome here! Goodbye!")
+}
+
+// version 2:   
+switch input {
+case "Philip\r\n":  fallthrough
+case "Ivo\r\n":     fallthrough
+case "Chris\r\n":   fmt.Printf("Welcome %s\n", input)
+default: fmt.Printf("You are not welcome here! Goodbye!\n")
+}
+
+// version 3:
+switch input {
+case "Philip\r\n", "Ivo\r\n":   fmt.Printf("Welcome %s\n", input)
+default: fmt.Printf("You are not welcome here! Goodbye!\n")
+}
+</code></pre>
+<p>}
+```</p>
+<p>注意：Unix和Windows的行结束符是不同的！</p>
+<p><strong>练习</strong></p>
+<p><strong>练习 12.1:</strong> <a href="exercises/chapter_12/word_letter_count.go">word_letter_count.go</a></p>
+<p>编写一个程序，从键盘读取输入。当用户输入 'S' 的时候表示输入结束，这时程序输出 3 个数字：<br />
+i) 输入的字符的个数，包括空格，但不包括 '\r' 和 '\n'<br />
+ii) 输入的单词的个数<br />
+iii) 输入的行数</p>
+<p><strong>练习 12.2:</strong> <a href="exercises/chapter_12/calculator.go">calculator.go</a></p>
+<p>编写一个简单的逆波兰式计算器，它接受用户输入的整型数（最大值 999999）和运算符 +、-、*、/。<br />
+输入的格式为：number1 ENTER number2 ENTER operator ENTER --&gt; 显示结果<br />
+当用户输入字符 'q' 时，程序结束。请使用您在练习11.13中开发的 <code>stack</code> 包。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="12.0.md.html">读写数据</a></li>
+<li>下一节：<a href="12.2.md.html">文件读写</a></li>
+</ul>

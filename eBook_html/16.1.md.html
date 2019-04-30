@@ -1,0 +1,38 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>16.1 误用短声明导致变量覆盖</h1>
+<p><code>go
+var remember bool = false
+if something {
+    remember := true //错误
+}
+// 使用remember</code></p>
+<p>在此代码段中，<code>remember</code>变量永远不会在<code>if</code>语句外面变成<code>true</code>，如果<code>something</code>为<code>true</code>，由于使用了短声明<code>:=</code>，<code>if</code>语句内部的新变量<code>remember</code>将覆盖外面的<code>remember</code>变量，并且该变量的值为<code>true</code>，但是在<code>if</code>语句外面，变量<code>remember</code>的值变成了<code>false</code>，所以正确的写法应该是：</p>
+<p><code>go
+if something {
+    remember = true
+}</code></p>
+<p>此类错误也容易在<code>for</code>循环中出现，尤其当函数返回一个具名变量时难于察觉
+，例如以下的代码段：</p>
+<p><code>go
+func shadow() (err error) {
+    x, err := check1() // x是新创建变量，err是被赋值
+    if err != nil {
+        return // 正确返回err
+    }
+    if y, err := check2(x); err != nil { // y和if语句中err被创建
+        return // if语句中的err覆盖外面的err，所以错误的返回nil！
+    } else {
+        fmt.Println(y)
+    }
+    return
+}</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="16.0.md.html">常见的陷阱与错误</a></li>
+<li>下一节：<a href="16.2.md.html">误用字符串</a></li>
+</ul>

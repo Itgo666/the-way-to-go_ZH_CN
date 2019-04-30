@@ -1,0 +1,69 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>16.10 糟糕的错误处理</h1>
+<p>译者注：该小结关于错误处理的观点，译者并不完全赞同，关于本小结的部分想法请参考<a href="Discussion_about_16.10.md.html">关于16.10.2小节错误处理的一些见解</a></p>
+<p>依附于<a href="13.0.md.html">第13章</a>模式的描述和<a href="17.1.md.html">第17.1小节</a>与<a href="17.2.md.html">第17.2.4小节</a>的总结。</p>
+<h2>16.10.1 不要使用布尔值：</h2>
+<p>像下面代码一样，创建一个布尔型变量用于测试错误条件是多余的：</p>
+<p><code>go
+var good bool
+    // 测试一个错误，`good`被赋为`true`或者`false`
+    if !good {
+        return errors.New("things aren’t good")
+    }</code></p>
+<p>立即检测一个错误：</p>
+<p><code>go
+... err1 := api.Func1()
+if err1 != nil { … }</code></p>
+<h2>16.10.2 避免错误检测使代码变得混乱：</h2>
+<p>避免写出这样的代码：</p>
+<p><code>go
+... err1 := api.Func1()
+if err1 != nil {
+    fmt.Println("err: " + err.Error())
+    return
+}
+err2 := api.Func2()
+if err2 != nil {
+...
+    return
+}</code></p>
+<p>首先，包括在一个初始化的<code>if</code>语句中对函数的调用。但即使代码中到处都是以<code>if</code>语句的形式通知错误（通过打印错误信息）。通过这种方式，很难分辨什么是正常的程序逻辑，什么是错误检测或错误通知。还需注意的是，大部分代码都是致力于错误的检测。通常解决此问题的好办法是尽可能以闭包的形式封装你的错误检测，例如下面的代码：</p>
+<p>```go
+func httpRequestHandler(w http.ResponseWriter, req *http.Request) {
+    err := func () error {
+        if req.Method != "GET" {
+            return errors.New("expected GET")
+        }
+        if input := parseInput(req); input != "command" {
+            return errors.New("malformed command")
+        }
+        // 可以在此进行其他的错误检测
+    } ()</p>
+<pre><code>    if err != nil {
+        w.WriteHeader(400)
+        io.WriteString(w, err)
+        return
+    }
+    doSomething() ...
+</code></pre>
+<p>```</p>
+<p>这种方法可以很容易分辨出错误检测、错误通知和正常的程序逻辑（更详细的方式参考<a href="13.5.md.html">第13.5小节</a>）。</p>
+<p><strong>在开始阅读<a href="17.0.md.html">第17章</a>前，先回答下列2个问题：</strong></p>
+<ul>
+<li>
+<p>问题 16.1：总结你能记住的所有关于<code>,ok</code>模式的情况。</p>
+</li>
+<li>
+<p>问题 16.2：总结你能记住的所有关于<code>defer</code>模式的情况。</p>
+</li>
+</ul>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="16.9.md.html">闭包和协程的使用</a></li>
+<li>下一章：<a href="17.0.md.html">模式</a></li>
+</ul>

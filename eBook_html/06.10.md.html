@@ -1,0 +1,37 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>6.10 使用闭包调试</h1>
+<p>当您在分析和调试复杂的程序时，无数个函数在不同的代码文件中相互调用，如果这时候能够准确地知道哪个文件中的具体哪个函数正在执行，对于调试是十分有帮助的。您可以使用 <code>runtime</code> 或 <code>log</code> 包中的特殊函数来实现这样的功能。包 <code>runtime</code> 中的函数 <code>Caller()</code> 提供了相应的信息，因此可以在需要的时候实现一个 <code>where()</code> 闭包函数来打印函数执行的位置：</p>
+<p><code>go
+where := func() {
+    _, file, line, _ := runtime.Caller(1)
+    log.Printf("%s:%d", file, line)
+}
+where()
+// some code
+where()
+// some more code
+where()</code></p>
+<p>您也可以设置 <code>log</code> 包中的 flag 参数来实现：</p>
+<p><code>go
+log.SetFlags(log.Llongfile)
+log.Print("")</code></p>
+<p>或使用一个更加简短版本的 <code>where</code> 函数：</p>
+<p><code>go
+var where = log.Print
+func func1() {
+where()
+... some code
+where()
+... some code
+where()
+}</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="06.9.md.html">应用闭包：将函数作为返回值</a></li>
+<li>下一节：<a href="06.11.md.html">计算函数执行时间</a></li>
+</ul>

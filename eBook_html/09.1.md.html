@@ -1,0 +1,104 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>9.1 标准库概述</h1>
+<p>像 <code>fmt</code>、<code>os</code> 等这样具有常用功能的内置包在 Go 语言中有 150 个以上，它们被称为标准库，大部分(一些底层的除外)内置于 Go 本身。完整列表可以在 <a href="https://gowalker.org/search?q=gorepos">Go Walker</a> 查看。</p>
+<p>在贯穿本书的例子和练习中，我们都是用标准库的包。可以通过查阅第 350 页包中的内容快速找到相关的包的实例。这里我们只是按功能进行分组来介绍这些包的简单用途，我们不会深入讨论他们的内部结构。</p>
+<ul>
+<li><code>unsafe</code>: 包含了一些打破 Go 语言“类型安全”的命令，一般的程序中不会被使用，可用在 C/C++ 程序的调用中。</li>
+<li><code>syscall</code>-<code>os</code>-<code>os/exec</code>:  <ul>
+<li><code>os</code>: 提供给我们一个平台无关性的操作系统功能接口，采用类Unix设计，隐藏了不同操作系统间差异，让不同的文件系统和操作系统对象表现一致。  </li>
+<li><code>os/exec</code>: 提供我们运行外部操作系统命令和程序的方式。  </li>
+<li><code>syscall</code>: 底层的外部包，提供了操作系统底层调用的基本接口。</li>
+</ul>
+</li>
+</ul>
+<p>通过一个 Go 程序让Linux重启来体现它的能力。</p>
+<p>示例 9.1 <a href="examples/chapter_9/reboot.go">reboot.go</a>：</p>
+<p>```go
+package main
+import (
+    "syscall"
+)</p>
+<p>const LINUX_REBOOT_MAGIC1 uintptr = 0xfee1dead
+const LINUX_REBOOT_MAGIC2 uintptr = 672274793
+const LINUX_REBOOT_CMD_RESTART uintptr = 0x1234567</p>
+<p>func main() {
+    syscall.Syscall(syscall.SYS_REBOOT,
+        LINUX_REBOOT_MAGIC1,
+        LINUX_REBOOT_MAGIC2,
+        LINUX_REBOOT_CMD_RESTART)
+}
+```</p>
+<ul>
+<li><code>archive/tar</code> 和 <code>/zip-compress</code>：压缩(解压缩)文件功能。</li>
+<li><code>fmt</code>-<code>io</code>-<code>bufio</code>-<code>path/filepath</code>-<code>flag</code>:  <ul>
+<li><code>fmt</code>: 提供了格式化输入输出功能。  </li>
+<li><code>io</code>: 提供了基本输入输出功能，大多数是围绕系统功能的封装。  </li>
+<li><code>bufio</code>: 缓冲输入输出功能的封装。  </li>
+<li><code>path/filepath</code>: 用来操作在当前系统中的目标文件名路径。  </li>
+<li><code>flag</code>: 对命令行参数的操作。　　</li>
+</ul>
+</li>
+<li><code>strings</code>-<code>strconv</code>-<code>unicode</code>-<code>regexp</code>-<code>bytes</code>:  <ul>
+<li><code>strings</code>: 提供对字符串的操作。  </li>
+<li><code>strconv</code>: 提供将字符串转换为基础类型的功能。</li>
+<li><code>unicode</code>: 为 unicode 型的字符串提供特殊的功能。</li>
+<li><code>regexp</code>: 正则表达式功能。  </li>
+<li><code>bytes</code>: 提供对字符型分片的操作。  </li>
+<li><code>index/suffixarray</code>: 子字符串快速查询。</li>
+</ul>
+</li>
+<li><code>math</code>-<code>math/cmath</code>-<code>math/big</code>-<code>math/rand</code>-<code>sort</code>:  <ul>
+<li><code>math</code>: 基本的数学函数。  </li>
+<li><code>math/cmath</code>: 对复数的操作。  </li>
+<li><code>math/rand</code>: 伪随机数生成。  </li>
+<li><code>sort</code>: 为数组排序和自定义集合。  </li>
+<li><code>math/big</code>: 大数的实现和计算。  　　</li>
+</ul>
+</li>
+<li><code>container</code>-<code>/list-ring-heap</code>: 实现对集合的操作。  <ul>
+<li><code>list</code>: 双链表。</li>
+<li><code>ring</code>: 环形链表。</li>
+</ul>
+</li>
+</ul>
+<p>下面代码演示了如何遍历一个链表(当 l 是 <code>*List</code>)：</p>
+<p><code>go
+for e := l.Front(); e != nil; e = e.Next() {
+    //do something with e.Value
+}</code></p>
+<ul>
+<li><code>time</code>-<code>log</code>:  <ul>
+<li><code>time</code>: 日期和时间的基本操作。  </li>
+<li><code>log</code>: 记录程序运行时产生的日志,我们将在后面的章节使用它。</li>
+</ul>
+</li>
+<li><code>encoding/json</code>-<code>encoding/xml</code>-<code>text/template</code>:<ul>
+<li><code>encoding/json</code>: 读取并解码和写入并编码 JSON 数据。  </li>
+<li><code>encoding/xml</code>:简单的 XML1.0 解析器,有关 JSON 和 XML 的实例请查阅第 12.9/10 章节。  </li>
+<li><code>text/template</code>:生成像 HTML 一样的数据与文本混合的数据驱动模板（参见第 15.7 节）。  </li>
+</ul>
+</li>
+<li><code>net</code>-<code>net/http</code>-<code>html</code>:（参见第 15 章）<ul>
+<li><code>net</code>: 网络数据的基本操作。  </li>
+<li><code>http</code>: 提供了一个可扩展的 HTTP 服务器和基础客户端，解析 HTTP 请求和回复。  </li>
+<li><code>html</code>: HTML5 解析器。  </li>
+</ul>
+</li>
+<li><code>runtime</code>: Go 程序运行时的交互操作，例如垃圾回收和协程创建。  </li>
+<li><code>reflect</code>: 实现通过程序运行时反射，让程序操作任意类型的变量。  </li>
+</ul>
+<p><code>exp</code> 包中有许多将被编译为新包的实验性的包。它们将成为独立的包在下次稳定版本发布的时候。如果前一个版本已经存在了，它们将被作为过时的包被回收。然而 Go1.0 发布的时候并不包含过时或者实验性的包。</p>
+<p><strong>练习 9.1</strong></p>
+<p>使用 <code>container/list</code> 包实现一个双向链表，将 101、102 和 103 放入其中并打印出来。</p>
+<p><strong>练习 9.2</strong></p>
+<p>通过使用 <code>unsafe</code> 包中的方法来测试你电脑上一个整型变量占用多少个字节。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="09.0.md.html">包（package）</a></li>
+<li>下一节：<a href="09.2.md.html">regexp 包</a></li>
+</ul>

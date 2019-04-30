@@ -1,0 +1,57 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>8.3 for-range 的配套用法</h1>
+<p>可以使用 for 循环构造 map：</p>
+<p><code>go
+for key, value := range map1 {
+    ...
+}</code></p>
+<p>第一个返回值 key 是 map 中的 key 值，第二个返回值则是该 key 对应的 value 值；这两个都是仅 for 循环内部可见的局部变量。其中第一个返回值key值是一个可选元素。如果你只关心值，可以这么使用：</p>
+<p><code>go
+for _, value := range map1 {
+    ...
+}</code></p>
+<p>如果只想获取 key，你可以这么使用：</p>
+<p><code>go
+for key := range map1 {
+    fmt.Printf("key is: %d\n", key)
+}</code></p>
+<p>示例 8.5 <a href="examples/chapter_8/maps_forrange.go">maps_forrange.go</a>：</p>
+<p>```go
+package main
+import "fmt"</p>
+<p>func main() {
+    map1 := make(map[int]float32)
+    map1[1] = 1.0
+    map1[2] = 2.0
+    map1[3] = 3.0
+    map1[4] = 4.0
+    for key, value := range map1 {
+        fmt.Printf("key is: %d - value is: %f\n", key, value)
+    }
+}
+```</p>
+<p>输出结果：</p>
+<pre><code>key is: 3 - value is: 3.000000
+key is: 1 - value is: 1.000000
+key is: 4 - value is: 4.000000
+key is: 2 - value is: 2.000000
+</code></pre>
+<p>注意 map 不是按照 key 的顺序排列的，也不是按照 value 的序排列的。</p>
+<p>问题 8.1： 下面这段代码的输出是什么？</p>
+<p><code>go
+capitals := map[string] string {"France":"Paris", "Italy":"Rome", "Japan":"Tokyo" }
+for key := range capitals {
+    fmt.Println("Map item: Capital of", key, "is", capitals[key])
+}</code></p>
+<p><strong>练习 8.1</strong></p>
+<p>创建一个 map 来保存每周 7 天的名字，将它们打印出来并且测试是否存在 Tuesday 和 Hollyday。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="08.2.md.html">测试键值对是否存在及删除元素</a></li>
+<li>下一节：<a href="08.4.md.html">map 类型的切片</a></li>
+</ul>

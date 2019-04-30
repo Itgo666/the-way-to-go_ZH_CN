@@ -1,0 +1,24 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>18.3 映射</h1>
+<p>创建：    <code>map1 := make(map[keytype]valuetype)</code></p>
+<p>初始化：   <code>map1 := map[string]int{"one": 1, "two": 2}</code></p>
+<p>（1）如何使用<code>for</code>或者<code>for-range</code>遍历一个映射：</p>
+<p><code>go
+for key, value := range map1 {
+…
+}</code></p>
+<p>（2）如何在一个映射中检测键<code>key1</code>是否存在：</p>
+<p><code>val1, isPresent = map1[key1]</code></p>
+<p>返回值：键<code>key1</code>对应的值或者<code>0</code>, <code>true</code>或者<code>false</code></p>
+<p>（3）如何在映射中删除一个键：</p>
+<p><code>delete(map1, key1)</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="18.2.md.html">数组和切片</a></li>
+<li>下一节：<a href="18.4.md.html">结构体</a></li>
+</ul>

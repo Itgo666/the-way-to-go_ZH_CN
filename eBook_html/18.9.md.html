@@ -1,0 +1,19 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>18.9 网络和网页应用</h1>
+<h2>18.9.1 模板：</h2>
+<p>制作、解析并使模板生效：</p>
+<p><code>go        
+var strTempl = template.Must(template.New("TName").Parse(strTemplateHTML))</code></p>
+<p>在网页应用中使用HTML过滤器过滤HTML特殊字符：</p>
+<p><code>{{html .}}</code> 或者通过一个字段 <code>FieldName {{ .FieldName |html }}</code></p>
+<p>使用缓存模板（参考<a href="15.7.md.html">章节15.7</a>） </p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="18.8.md.html">协程（goroutine）与通道（channel）</a></li>
+<li>下一节：<a href="18.10.md.html">其他</a></li>
+</ul>

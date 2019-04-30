@@ -1,0 +1,23 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>18.10 其他</h1>
+<p>如何在程序出错时终止程序：</p>
+<p><code>go   
+if err != nil {
+   fmt.Printf("Program stopping with error %v", err)
+   os.Exit(1)
+}</code></p>
+<p>或者：</p>
+<p><code>go
+if err != nil { 
+    panic("ERROR occurred: " + err.Error())
+}</code></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="18.9.md.html">网络和网页应用</a></li>
+<li>下一节：<a href="18.11.md.html">出于性能考虑的最佳实践和建议</a></li>
+</ul>

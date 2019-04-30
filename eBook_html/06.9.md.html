@@ -1,0 +1,100 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>6.9 应用闭包：将函数作为返回值</h1>
+<p>在程序 <code>function_return.go</code> 中我们将会看到函数 Add2 和 Adder 均会返回签名为 <code>func(b int) int</code> 的函数：</p>
+<p><code>go
+func Add2() (func(b int) int)
+func Adder(a int) (func(b int) int)</code></p>
+<p>函数 Add2 不接受任何参数，但函数 Adder 接受一个 int 类型的整数作为参数。</p>
+<p>我们也可以将 Adder 返回的函数存到变量中（function_return.go）。</p>
+<p>```go
+package main</p>
+<p>import "fmt"</p>
+<p>func main() {
+    // make an Add2 function, give it a name p2, and call it:
+    p2 := Add2()
+    fmt.Printf("Call Add2 for 3 gives: %v\n", p2(3))
+    // make a special Adder function, a gets value 2:
+    TwoAdder := Adder(2)
+    fmt.Printf("The result is: %v\n", TwoAdder(3))
+}</p>
+<p>func Add2() func(b int) int {
+    return func(b int) int {
+        return b + 2
+    }
+}</p>
+<p>func Adder(a int) func(b int) int {
+    return func(b int) int {
+        return a + b
+    }
+}
+```</p>
+<p>输出：</p>
+<p><code>Call Add2 for 3 gives: 5
+The result is: 5</code></p>
+<p>下例为一个略微不同的实现（function_closure.go）：</p>
+<p>```go
+package main</p>
+<p>import "fmt"</p>
+<p>func main() {
+    var f = Adder()
+    fmt.Print(f(1), " - ")
+    fmt.Print(f(20), " - ")
+    fmt.Print(f(300))
+}</p>
+<p>func Adder() func(int) int {
+    var x int
+    return func(delta int) int {
+        x += delta
+        return x
+    }
+}
+```</p>
+<p>函数 Adder() 现在被赋值到变量 f 中（类型为 <code>func(int) int</code>）。</p>
+<p>输出：</p>
+<pre><code>1 - 21 - 321
+</code></pre>
+<p>三次调用函数 f 的过程中函数 Adder() 中变量 delta 的值分别为：1、20 和 300。</p>
+<p>我们可以看到，在多次调用中，变量 x 的值是被保留的，即 <code>0 + 1 = 1</code>，然后 <code>1 + 20 = 21</code>，最后 <code>21 + 300 = 321</code>：闭包函数保存并积累其中的变量的值，不管外部函数退出与否，它都能够继续操作外部函数中的局部变量。</p>
+<p>这些局部变量同样可以是参数，例如之前例子中的 <code>Adder(as int)</code>。</p>
+<p>这些例子清楚地展示了如何在 Go 语言中使用闭包。</p>
+<p>在闭包中使用到的变量可以是在闭包函数体内声明的，也可以是在外部函数声明的：</p>
+<p><code>go
+var g int
+go func(i int) {
+    s := 0
+    for j := 0; j &lt; i; j++ { s += j }
+    g = s
+}(1000) // Passes argument 1000 to the function literal.</code></p>
+<p>这样闭包函数就能够被应用到整个集合的元素上，并修改它们的值。然后这些变量就可以用于表示或计算全局或平均值。</p>
+<p><strong>练习 6.9</strong> 不使用递归但使用闭包改写第 6.6 节中的斐波那契数列程序。</p>
+<p><strong>练习 6.10</strong> </p>
+<p>学习并理解以下程序的工作原理：</p>
+<p>一个返回值为另一个函数的函数可以被称之为工厂函数，这在您需要创建一系列相似的函数的时候非常有用：书写一个工厂函数而不是针对每种情况都书写一个函数。下面的函数演示了如何动态返回追加后缀的函数：</p>
+<p><code>go
+func MakeAddSuffix(suffix string) func(string) string {
+    return func(name string) string {
+        if !strings.HasSuffix(name, suffix) {
+            return name + suffix
+        }
+        return name
+    }
+}</code></p>
+<p>现在，我们可以生成如下函数：</p>
+<p><code>go
+addBmp := MakeAddSuffix(".bmp")
+addJpeg := MakeAddSuffix(".jpeg")</code></p>
+<p>然后调用它们：</p>
+<p><code>go
+addBmp("file") // returns: file.bmp
+addJpeg("file") // returns: file.jpeg</code></p>
+<p>可以返回其它函数的函数和接受其它函数作为参数的函数均被称之为高阶函数，是函数式语言的特点。我们已经在第 6.7 中得知函数也是一种值，因此很显然 Go 语言具有一些函数式语言的特性。闭包在 Go 语言中非常常见，常用于 goroutine 和管道操作（详见第 14.8-14.9 节）。在第 11.14 节的程序中，我们将会看到 Go 语言中的函数在处理混合对象时的强大能力。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="06.8.md.html">闭包</a></li>
+<li>下一节：<a href="06.10.md.html">使用闭包调试</a></li>
+</ul>

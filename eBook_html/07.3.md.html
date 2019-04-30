@@ -1,0 +1,81 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>7.3 For-range 结构</h1>
+<p>这种构建方法可以应用于数组和切片:</p>
+<p><code>go
+for ix, value := range slice1 {
+    ...
+}</code></p>
+<p>第一个返回值 ix 是数组或者切片的索引，第二个是在该索引位置的值；他们都是仅在 for 循环内部可见的局部变量。value 只是 slice1 某个索引位置的值的一个拷贝，不能用来修改 slice1 该索引位置的值。</p>
+<p>示例 7.9 <a href="examples/chapter_7/slices_forrange.go">slices_forrange.go</a></p>
+<p>```go
+package main</p>
+<p>import "fmt"</p>
+<p>func main() {
+    var slice1 []int = make([]int, 4)</p>
+<pre><code>slice1[0] = 1
+slice1[1] = 2
+slice1[2] = 3
+slice1[3] = 4
+
+for ix, value := range slice1 {
+    fmt.Printf("Slice at %d is: %d\n", ix, value)
+}
+</code></pre>
+<p>}
+```</p>
+<p>示例 7.10 <a href="examples/chapter_7/slices_forrange2.go">slices_forrange2.go</a></p>
+<p>```go
+package main
+import "fmt"</p>
+<p>func main() {
+    seasons := []string{"Spring", "Summer", "Autumn", "Winter"}
+    for ix, season := range seasons {
+        fmt.Printf("Season %d is: %s\n", ix, season)
+    }</p>
+<pre><code>var season string
+for _, season = range seasons {
+    fmt.Printf("%s\n", season)
+}
+</code></pre>
+<p>}
+```</p>
+<p>slices_forrange2.go 给出了一个关于字符串的例子， <code>_</code> 可以用于忽略索引。</p>
+<p>如果你只需要索引，你可以忽略第二个变量，例如：</p>
+<p><code>go
+for ix := range seasons {
+    fmt.Printf("%d", ix)
+}
+// Output: 0 1 2 3</code></p>
+<p>如果你需要修改 <code>seasons[ix]</code> 的值可以使用这个版本。</p>
+<p><strong>多维切片下的 for-range：</strong></p>
+<p>通过计算行数和矩阵值可以很方便的写出如（参考第 7.1.3 节）的 for 循环来，例如（参考第 7.5 节的例子 multidim_array.go）：</p>
+<p><code>go
+for row := range screen {
+    for column := range screen[row] {
+        screen[row][column] = 1
+    }
+}</code></p>
+<p><strong>问题 7.5</strong> 假设我们有如下数组：<code>items := [...]int{10, 20, 30, 40, 50}</code></p>
+<p>a) 如果我们写了如下的 for 循环，那么执行完 for 循环后的 <code>items</code> 的值是多少？如果你不确定的话可以测试一下:)</p>
+<p><code>go
+for _, item := range items {
+    item *= 2
+}</code></p>
+<p>b) 如果 a) 无法正常工作，写一个 for 循环让值可以 double。</p>
+<p><strong>问题 7.6</strong> 通过使用省略号操作符 <code>...</code> 来实现累加方法。</p>
+<p><strong>练习 7.7</strong> sum_array.go</p>
+<p>a) 写一个 Sum 函数，传入参数为一个 32 位 float 数组成的数组 arrF，返回该数组的所有数字和。</p>
+<p>如果把数组修改为切片的话代码要做怎样的修改？如果用切片形式方法实现不同长度数组的的和呢？</p>
+<p>b) 写一个 SumAndAverage 方法，返回两个 int 和 float32 类型的未命名变量的和与平均值。</p>
+<p><strong>练习 7.8</strong> min_max.go</p>
+<p>写一个 minSlice 方法，传入一个 int 的切片并且返回最小值，再写一个 maxSlice 方法返回最大值。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="07.2.md.html">切片</a></li>
+<li>下一节：<a href="07.4.md.html">切片重组（reslice）</a></li>
+</ul>

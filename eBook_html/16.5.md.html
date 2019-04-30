@@ -1,0 +1,20 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>16.5 不需要将一个指向切片的指针传递给函数</h1>
+<p>在<a href="04.9.md.html">第4.9小节</a>，我们已经知道，切片实际是一个指向潜在数组的指针。我们常常需要把切片作为一个参数传递给函数是因为：实际就是传递一个指向变量的指针，在函数内可以改变这个变量，而不是传递数据的拷贝。</p>
+<p>因此应该这样做：</p>
+<pre><code>   func findBiggest( listOfNumbers []int ) int {}
+</code></pre>
+<p>而不是：</p>
+<pre><code>   func findBiggest( listOfNumbers *[]int ) int {}
+</code></pre>
+<p><strong>当切片作为参数传递时，切记不要解引用切片。</strong></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="16.4.md.html">何时使用new()和make()</a></li>
+<li>下一节：<a href="16.6.md.html">使用指针指向接口类型</a></li>
+</ul>

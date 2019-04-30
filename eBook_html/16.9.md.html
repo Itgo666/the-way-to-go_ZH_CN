@@ -1,0 +1,65 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>16.9 闭包和协程的使用</h1>
+<p>请看下面代码：</p>
+<p>```go
+package main</p>
+<p>import (
+    "fmt"
+    "time"
+)</p>
+<p>var values = [5]int{10, 11, 12, 13, 14}</p>
+<p>func main() {
+    // 版本A:
+    for ix := range values { // ix是索引值
+        func() {
+            fmt.Print(ix, " ")
+        }() // 调用闭包打印每个索引值
+    }
+    fmt.Println()
+    // 版本B: 和A版本类似，但是通过调用闭包作为一个协程
+    for ix := range values {
+        go func() {
+            fmt.Print(ix, " ")
+        }()
+    }
+    fmt.Println()
+    time.Sleep(5e9)
+    // 版本C: 正确的处理方式
+    for ix := range values {
+        go func(ix interface{}) {
+            fmt.Print(ix, " ")
+        }(ix)
+    }
+    fmt.Println()
+    time.Sleep(5e9)
+    // 版本D: 输出值:
+    for ix := range values {
+        val := values[ix]
+        go func() {
+            fmt.Print(val, " ")
+        }()
+    }
+    time.Sleep(1e9)
+}</p>
+<p>```</p>
+<p>输出：</p>
+<p>```
+0 1 2 3 4</p>
+<p>4 4 4 4 4</p>
+<p>1 0 3 4 2</p>
+<p>10 11 12 13 14
+```</p>
+<p>版本A调用闭包5次打印每个索引值，版本B也做相同的事，但是通过协程调用每个闭包。按理说这将执行得更快，因为闭包是并发执行的。如果我们阻塞足够多的时间，让所有协程执行完毕，版本B的输出是：<code>4 4 4 4 4</code>。为什么会这样？在版本B的循环中，<code>ix</code>变量实际是一个单变量，表示每个数组元素的索引值。因为这些闭包都只绑定到一个变量，这是一个比较好的方式，当你运行这段代码时，你将看见每次循环都打印最后一个索引值<code>4</code>，而不是每个元素的索引值。因为协程可能在循环结束后还没有开始执行，而此时<code>ix</code>值是<code>4</code>。</p>
+<p>版本C的循环写法才是正确的：调用每个闭包时将<code>ix</code>作为参数传递给闭包。<code>ix</code>在每次循环时都被重新赋值，并将每个协程的<code>ix</code>放置在栈中，所以当协程最终被执行时，每个索引值对协程都是可用的。注意这里的输出可能是<code>0 2 1 3 4</code>或者<code>0 3 1 2 4</code>或者其他类似的序列，这主要取决于每个协程何时开始被执行。</p>
+<p>在版本D中，我们输出这个数组的值，为什么版本B不能而版本D可以呢？</p>
+<p>因为版本D中的变量声明是在循环体内部，所以在每次循环时，这些变量相互之间是不共享的，所以这些变量可以单独的被每个闭包使用。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="16.8.md.html">误用协程和通道</a></li>
+<li>下一节：<a href="16.10.md.html">糟糕的错误处理</a></li>
+</ul>

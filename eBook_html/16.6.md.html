@@ -1,0 +1,41 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>16.6 使用指针指向接口类型</h1>
+<p>查看如下程序：<code>nexter</code>是一个接口类型，并且定义了一个<code>next()</code>方法读取下一字节。函数<code>nextFew</code>将<code>nexter</code>接口作为参数并读取接下来的<code>num</code>个字节，并返回一个切片：这是正确做法。但是<code>nextFew2</code>使用一个指向<code>nexter</code>接口类型的指针作为参数传递给函数：当使用<code>next()</code>函数时，系统会给出一个编译错误：<strong>n.next undefined (type *nexter has no
+field or method next)</strong> （译者注：n.next未定义（*nexter类型没有next成员或next方法））</p>
+<p>例 16.1 pointer_interface.go (不能通过编译):</p>
+<p><code>go
+package main
+import (
+    “fmt”
+)
+type nexter interface {
+    next() byte
+}
+func nextFew1(n nexter, num int) []byte {
+    var b []byte
+    for i:=0; i &lt; num; i++ {
+        b[i] = n.next()
+    }
+    return b
+}
+func nextFew2(n *nexter, num int) []byte {
+    var b []byte
+    for i:=0; i &lt; num; i++ {
+        b[i] = n.next() // 编译错误:n.next未定义（*nexter类型没有next成员或next方法）
+    }
+    return b
+}
+func main() {
+    fmt.Println(“Hello World!”)
+}</code></p>
+<p><strong>永远不要使用一个指针指向一个接口类型，因为它已经是一个指针。</strong></p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="16.5.md.html">不需要将一个指向切片的指针传递给函数</a></li>
+<li>下一节：<a href="16.7.md.html">使用值类型时误用指针</a></li>
+</ul>

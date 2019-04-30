@@ -1,0 +1,123 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>15.3 访问并读取页面</h1>
+<p>在下边这个程序中，数组中的url都将被访问：会发送一个简单的<code>http.Head()</code>请求查看返回值；它的声明如下：<code>func Head(url string) (r *Response, err error)</code></p>
+<p>返回状态码会被打印出来。</p>
+<p>示例 15.7 <a href="examples/chapter_15/poll_url.go">poll_url.go</a>：</p>
+<p>```go
+package main</p>
+<p>import (
+    "fmt"
+    "net/http"
+)</p>
+<p>var urls = []string{
+    "http://www.google.com/",
+    "http://golang.org/",
+    "http://blog.golang.org/",
+}</p>
+<p>func main() {
+    // Execute an HTTP HEAD request for all url's
+    // and returns the HTTP status string or an error string.
+    for _, url := range urls {
+        resp, err := http.Head(url)
+        if err != nil {
+            fmt.Println("Error:", url, err)
+        }
+        fmt.Println(url, ": ", resp.Status)
+    }
+}
+```
+输出为：</p>
+<p><code>http://www.google.com/ : 302 Found
+http://golang.org/ : 200 OK
+http://blog.golang.org/ : 200 OK</code>
+<strong><em>译者注</em></strong> 由于国内的网络环境现状，很有可能见到如下超时错误提示：</p>
+<p><code>Error: http://www.google.com/ Head http://www.google.com/: dial tcp 216.58.221.100:80: connectex: A connection attempt failed because the connected pa
+rty did not properly respond after a period of time, or established connection failed because connected host has failed to respond.</code>
+在下边的程序中我们使用<code>http.Get()</code>获取网页内容； <code>Get</code>的返回值<code>res</code>中的<code>Body</code>属性包含了网页内容，然后我们用<code>ioutil.ReadAll</code>把它读出来：</p>
+<p>示例 15.8 <a href="examples/chapter_15/http_fetch.go">http_fetch.go</a>：</p>
+<p>```go
+package main</p>
+<p>import (
+    "fmt"
+    "io/ioutil"
+    "log"
+    "net/http"
+)</p>
+<p>func main() {
+    res, err := http.Get("http://www.google.com")
+    checkError(err)
+    data, err := ioutil.ReadAll(res.Body)
+    checkError(err)
+    fmt.Printf("Got: %q", string(data))
+}</p>
+<p>func checkError(err error) {
+    if err != nil {
+        log.Fatalf("Get : %v", err)
+    }
+}
+```</p>
+<p>当访问不存在的网站时，这里有一个<code>CheckError</code>输出错误的例子：
+<code>2011/09/30 11:24:15 Get: Get http://www.google.bex: dial tcp www.google.bex:80:GetHostByName: No such host is known.</code>
+<strong><em>译者注</em></strong> 和上一个例子相似，你可以把google.com更换为一个国内可以顺畅访问的网址进行测试</p>
+<p>在下边的程序中，我们获取一个twitter用户的状态，通过<code>xml</code>包将这个状态解析成为一个结构：</p>
+<p>示例 15.9 <a href="examples/chapter_15/twitter_status.go">twitter_status.go</a></p>
+<p>```go
+package main</p>
+<p>import (
+    "encoding/xml"
+    "fmt"
+    "net/http"
+)</p>
+<p>/<em>这个结构会保存解析后的返回数据。
+他们会形成有层级的XML，可以忽略一些无用的数据</em>/
+type Status struct {
+    Text string
+}</p>
+<p>type User struct {
+    XMLName xml.Name
+    Status  Status
+}</p>
+<p>func main() {
+    // 发起请求查询推特Goodland用户的状态
+    response, _ := http.Get("http://twitter.com/users/Googland.xml")
+    // 初始化XML返回值的结构
+    user := User{xml.Name{"", "user"}, Status{""}}
+    // 将XML解析为我们的结构
+    xml.Unmarshal(response.Body, &amp;user)
+    fmt.Printf("status: %s", user.Status.Text)
+}
+```
+输出：</p>
+<p><code>status: Robot cars invade California, on orders from Google: Google has been testing self-driving cars ... http://bit.ly/cbtpUN http://retwt.me/97p&lt;exit code="0" msg="process exited normally"/&gt;</code>
+<strong>译者注</strong> 和上边的示例相似，你可能无法获取到xml数据，另外由于go版本的更新，<code>xml.Unmarshal</code>函数的第一个参数需是[]byte类型，而无法传入<code>Body</code>。</p>
+<p>我们会在<a href="15.4.md.html">章节15.4</a>中用到<code>http</code>包中的其他重要的函数：</p>
+<ul>
+<li><code>http.Redirect(w ResponseWriter, r *Request, url string, code int)</code>：这个函数会让浏览器重定向到url（是请求的url的相对路径）以及状态码。</li>
+<li><code>http.NotFound(w ResponseWriter, r *Request)</code>：这个函数将返回网页没有找到，HTTP 404错误。</li>
+<li><code>http.Error(w ResponseWriter, error string, code int)</code>：这个函数返回特定的错误信息和HTTP代码。</li>
+<li>另<code>http.Request</code>对象的一个重要属性<code>req</code>：<code>req.Method</code>，这是一个包含<code>GET</code>或<code>POST</code>字符串，用来描述网页是以何种方式被请求的。</li>
+</ul>
+<p>go为所有的HTTP状态码定义了常量，比如：</p>
+<pre><code>http.StatusContinue     = 100
+http.StatusOK           = 200
+http.StatusFound        = 302
+http.StatusBadRequest       = 400
+http.StatusUnauthorized     = 401
+http.StatusForbidden        = 403
+http.StatusNotFound     = 404
+http.StatusInternalServerError  = 500
+</code></pre>
+<p>你可以使用<code>w.header().Set("Content-Type", "../..")</code>设置头信息</p>
+<p>比如在网页应用发送html字符串的时候，在输出之前执行<code>w.Header().Set("Content-Type", "text/html")</code>。</p>
+<p>练习 15.4：扩展 http_fetch.go 使之可以从控制台读取url，使用<a href="12.1.md.html">章节12.1</a>学到的接收控制台输入的方法 （<a href="examples/chapter_15/http_fetch2.go">http_fetch2.go</a>）</p>
+<p>练习 15.5：获取json格式的推特状态，就像示例 15.9（twitter_status_json.go）</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一章：<a href="15.2.md.html">一个简单的网页服务器</a></li>
+<li>下一节：<a href="15.4.md.html">写一个简单的网页应用</a></li>
+</ul>

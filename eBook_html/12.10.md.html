@@ -1,0 +1,72 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>12.10 XML 数据格式</h1>
+<p>下面是与 12.9 节 JSON 例子等价的 XML 版本：</p>
+<p><code>xml
+&lt;Person&gt;
+    &lt;FirstName&gt;Laura&lt;/FirstName&gt;
+    &lt;LastName&gt;Lynn&lt;/LastName&gt;
+&lt;/Person&gt;</code></p>
+<p>如同 json 包一样，也有 <code>Marshal()</code> 和 <code>UnMarshal()</code> 从 XML 中编码和解码数据；但这个更通用，可以从文件中读取和写入（或者任何实现了 io.Reader 和 io.Writer 接口的类型）</p>
+<p>和 JSON 的方式一样，XML 数据可以序列化为结构，或者从结构反序列化为 XML 数据；这些可以在例子 15.8（twitter_status.go）中看到。</p>
+<p>encoding/xml 包实现了一个简单的 XML 解析器（SAX），用来解析 XML 数据内容。下面的例子说明如何使用解析器：</p>
+<p>示例 12.17 <a href="examples/chapter_12/xml.go">xml.go</a>：</p>
+<p>```go
+// xml.go
+package main</p>
+<p>import (
+    "encoding/xml"
+    "fmt"
+    "strings"
+)</p>
+<p>var t, token xml.Token
+var err error</p>
+<p>func main() {
+    input := "<Person><FirstName>Laura</FirstName><LastName>Lynn</LastName></Person>"
+    inputReader := strings.NewReader(input)
+    p := xml.NewDecoder(inputReader)</p>
+<pre><code>for t, err = p.Token(); err == nil; t, err = p.Token() {
+    switch token := t.(type) {
+    case xml.StartElement:
+        name := token.Name.Local
+        fmt.Printf("Token name: %s\n", name)
+        for _, attr := range token.Attr {
+            attrName := attr.Name.Local
+            attrValue := attr.Value
+            fmt.Printf("An attribute is: %s %s\n", attrName, attrValue)
+            // ...
+        }
+    case xml.EndElement:
+        fmt.Println("End of token")
+    case xml.CharData:
+        content := string([]byte(token))
+        fmt.Printf("This is the content: %v\n", content)
+        // ...
+    default:
+        // ...
+    }
+}
+</code></pre>
+<p>}
+```</p>
+<p>输出：</p>
+<p><code>Token name: Person
+Token name: FirstName
+This is the content: Laura
+End of token
+Token name: LastName
+This is the content: Lynn
+End of token
+End of token</code></p>
+<p>包中定义了若干 XML 标签类型：StartElement，Chardata（这是从开始标签到结束标签之间的实际文本），EndElement，Comment，Directive 或 ProcInst。</p>
+<p>包中同样定义了一个结构解析器：<code>NewParser</code> 方法持有一个 io.Reader（这里具体类型是 strings.NewReader）并生成一个解析器类型的对象。还有一个 <code>Token()</code> 方法返回输入流里的下一个 XML token。在输入流的结尾处，会返回（nil，io.EOF）</p>
+<p>XML 文本被循环处理直到 <code>Token()</code> 返回一个错误，因为已经到达文件尾部，再没有内容可供处理了。通过一个 type-switch 可以根据一些 XML 标签进一步处理。Chardata 中的内容只是一个 []byte，通过字符串转换让其变得可读性强一些。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="12.9.md.html">Json 数据格式</a></li>
+<li>下一节：<a href="12.11.md.html">用 Gob 传输数据</a></li>
+</ul>

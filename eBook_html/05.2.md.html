@@ -1,0 +1,116 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>5.2 测试多返回值函数的错误</h1>
+<p>Go 语言的函数经常使用两个返回值来表示执行是否成功：返回某个值以及 true 表示成功；返回零值（或 nil）和 false 表示失败（第 4.4 节）。当不使用 true 或 false 的时候，也可以使用一个 error 类型的变量来代替作为第二个返回值：成功执行的话，error 的值为 nil，否则就会包含相应的错误信息（Go 语言中的错误类型为 error: <code>var err error</code>，我们将会在第 13 章进行更多地讨论）。这样一来，就很明显需要用一个 if 语句来测试执行结果；由于其符号的原因，这样的形式又称之为 comma,ok 模式（pattern）。</p>
+<p>在第 4.7 节的程序 <code>string_conversion.go</code> 中，函数 <code>strconv.Atoi</code> 的作用是将一个字符串转换为一个整数。之前我们忽略了相关的错误检查：</p>
+<p><code>go
+anInt, _ = strconv.Atoi(origStr)</code></p>
+<p>如果 origStr 不能被转换为整数，anInt 的值会变成 0 而 <code>_</code> 无视了错误，程序会继续运行。</p>
+<p>这样做是非常不好的：程序应该在最接近的位置检查所有相关的错误，至少需要暗示用户有错误发生并对函数进行返回，甚至中断程序。</p>
+<p>我们在第二个版本中对代码进行了改进：</p>
+<p>示例 1：</p>
+<p>示例 5.3 <a href="examples/chapter_5/string_conversion2.go">string_conversion2.go</a></p>
+<p>```go
+package main</p>
+<p>import (
+    "fmt"
+    "strconv"
+)</p>
+<p>func main() {
+    var orig string = "ABC"
+    // var an int
+    var newS string
+    // var err error</p>
+<pre><code>fmt.Printf("The size of ints is: %d\n", strconv.IntSize)      
+// anInt, err = strconv.Atoi(origStr)
+an, err := strconv.Atoi(orig)
+if err != nil {
+    fmt.Printf("orig %s is not an integer - exiting with error\n", orig)
+    return
+} 
+fmt.Printf("The integer is %d\n", an)
+an = an + 5
+newS = strconv.Itoa(an)
+fmt.Printf("The new string is: %s\n", newS)
+</code></pre>
+<p>}
+```</p>
+<p>这是测试 err 变量是否包含一个真正的错误（<code>if err != nil</code>）的习惯用法。如果确实存在错误，则会打印相应的错误信息然后通过 return 提前结束函数的执行。我们还可以使用携带返回值的 return 形式，例如 <code>return err</code>。这样一来，函数的调用者就可以检查函数执行过程中是否存在错误了。</p>
+<p><strong>习惯用法</strong></p>
+<p><code>go
+value, err := pack1.Function1(param1)
+if err != nil {
+    fmt.Printf("An error occured in pack1.Function1 with parameter %v", param1)
+    return err
+}
+// 未发生错误，继续执行：</code></p>
+<p>由于本例的函数调用者属于 main 函数，所以程序会直接停止运行。</p>
+<p>如果我们想要在错误发生的同时终止程序的运行，我们可以使用 <code>os</code> 包的 <code>Exit</code> 函数：</p>
+<p><strong>习惯用法</strong></p>
+<p><code>go
+if err != nil {
+    fmt.Printf("Program stopping with error %v", err)
+    os.Exit(1)
+}</code></p>
+<p>（此处的退出代码 1 可以使用外部脚本获取到）</p>
+<p>有时候，你会发现这种习惯用法被连续重复地使用在某段代码中。</p>
+<p>当没有错误发生时，代码继续运行就是唯一要做的事情，所以 if 语句块后面不需要使用 else 分支。</p>
+<p>示例 2：我们尝试通过 <code>os.Open</code> 方法打开一个名为 <code>name</code> 的只读文件：</p>
+<p><code>go
+f, err := os.Open(name)
+if err != nil {
+    return err
+}
+doSomething(f) // 当没有错误发生时，文件对象被传入到某个函数中
+doSomething</code></p>
+<p><strong>练习 5.1</strong> 尝试改写 <a href="examples/chapter_5/string_conversion2.go">string_conversion2.go</a> 中的代码，要求使用 <code>:=</code> 方法来对 err 进行赋值，哪些地方可以被修改？</p>
+<p>示例 3：可以将错误的获取放置在 if 语句的初始化部分：</p>
+<p><strong>习惯用法</strong></p>
+<p><code>go
+if err := file.Chmod(0664); err != nil {
+    fmt.Println(err)
+    return err
+}</code></p>
+<p>示例 4：或者将 ok-pattern 的获取放置在 if 语句的初始化部分，然后进行判断：</p>
+<p><strong>习惯用法</strong></p>
+<p><code>go
+if value, ok := readData(); ok {
+…
+}</code></p>
+<p><strong>注意事项</strong></p>
+<p>如果您像下面一样，没有为多返回值的函数准备足够的变量来存放结果：</p>
+<p>```go
+func mySqrt(f float64) (v float64, ok bool) {
+    if f &lt; 0 { return } // error case
+    return math.Sqrt(f),true
+}</p>
+<p>func main() {
+    t := mySqrt(25.0)
+    fmt.Println(t)
+}
+```</p>
+<p>您会得到一个编译错误：<code>multiple-value mySqrt() in single-value context</code>。</p>
+<p>正确的做法是：</p>
+<p><code>go
+t, ok := mySqrt(25.0)
+if ok { fmt.Println(t) }</code></p>
+<p><strong>注意事项 2</strong></p>
+<p>当您将字符串转换为整数时，且确定转换一定能够成功时，可以将 <code>Atoi</code> 函数进行一层忽略错误的封装：</p>
+<p><code>go
+func atoi (s string) (n int) {
+    n, _ = strconv.Atoi(s)
+    return
+}</code></p>
+<p>实际上，<code>fmt</code> 包（第 4.4.3 节）最简单的打印函数也有 2 个返回值：</p>
+<p><code>go
+count, err := fmt.Println(x) // number of bytes printed, nil or 0, error</code></p>
+<p>当打印到控制台时，可以将该函数返回的错误忽略；但当输出到文件流、网络流等具有不确定因素的输出对象时，应该始终检查是否有错误发生（另见练习 6.1b）。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="05.1.md.html">if-else 结构</a></li>
+<li>下一节：<a href="05.3.md.html">switch 结构</a></li>
+</ul>

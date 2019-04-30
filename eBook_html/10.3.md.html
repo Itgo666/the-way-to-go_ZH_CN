@@ -1,0 +1,41 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>10.3 使用自定义包中的结构体</h1>
+<p>下面的例子中，main.go 使用了一个结构体，它来自 struct_pack 下的包 structPack。</p>
+<p>示例 10.5 <a href="examples/chapter_10/struct_pack/structPack.go">structPack.go</a>：</p>
+<p>```go
+package structPack</p>
+<p>type ExpStruct struct {
+    Mi1 int
+    Mf1 float32
+}
+```</p>
+<p>示例 10.6 <a href="examples/chapter_10/main.go">main.go</a>：</p>
+<p>```go
+package main
+import (
+    "fmt"
+    "./struct_pack/structPack"
+)</p>
+<p>func main() {
+    struct1 := new(structPack.ExpStruct)
+    struct1.Mi1 = 10
+    struct1.Mf1 = 16.</p>
+<pre><code>fmt.Printf("Mi1 = %d\n", struct1.Mi1)
+fmt.Printf("Mf1 = %f\n", struct1.Mf1)
+</code></pre>
+<p>}
+```</p>
+<p>输出：</p>
+<pre><code>Mi1 = 10
+Mf1 = 16.000000
+</code></pre>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="10.2.md.html">使用工厂方法创建结构体实例</a></li>
+<li>下一节：<a href="10.4.md.html">带标签的结构体</a></li>
+</ul>

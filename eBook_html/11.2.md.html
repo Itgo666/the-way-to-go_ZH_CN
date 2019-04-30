@@ -1,0 +1,29 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<p>﻿# 11.2 接口嵌套接口</p>
+<p>一个接口可以包含一个或多个其他的接口，这相当于直接将这些内嵌接口的方法列举在外层接口中一样。</p>
+<p>比如接口 <code>File</code> 包含了 <code>ReadWrite</code> 和 <code>Lock</code> 的所有方法，它还额外有一个 <code>Close()</code> 方法。</p>
+<p>```go
+type ReadWrite interface {
+    Read(b Buffer) bool
+    Write(b Buffer) bool
+}</p>
+<p>type Lock interface {
+    Lock()
+    Unlock()
+}</p>
+<p>type File interface {
+    ReadWrite
+    Lock
+    Close()
+}
+```</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="11.1.md.html">接口是什么</a></li>
+<li>下一节：<a href="11.3.md.html">如何检测和转换接口变量的类型：类型断言</a></li>
+</ul>

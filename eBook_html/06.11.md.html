@@ -1,0 +1,21 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>6.11 计算函数执行时间</h1>
+<p>有时候，能够知道一个计算执行消耗的时间是非常有意义的，尤其是在对比和基准测试中。最简单的一个办法就是在计算开始之前设置一个起始时候，再由计算结束时的结束时间，最后取出它们的差值，就是这个计算所消耗的时间。想要实现这样的做法，可以使用 <code>time</code> 包中的 <code>Now()</code> 和 <code>Sub</code> 函数：</p>
+<p><code>go
+start := time.Now()
+longCalculation()
+end := time.Now()
+delta := end.Sub(start)
+fmt.Printf("longCalculation took this amount of time: %s\n", delta)</code></p>
+<p>您可以查看示例 6.20 <a href="examples/chapter_6/fibonacci.go">fibonacci.go</a> 作为实例学习。</p>
+<p>如果您对一段代码进行了所谓的优化，请务必对它们之间的效率进行对比再做出最后的判断。在接下来的章节中，我们会学习如何进行有价值的优化操作。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="06.10.md.html">使用闭包调试</a></li>
+<li>下一节：<a href="06.12.md.html">通过内存缓存来提升性能</a></li>
+</ul>

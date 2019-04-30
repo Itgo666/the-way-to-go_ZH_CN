@@ -1,0 +1,77 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!-- 此处省略掉markdown的css样式，因为太长了 -->
+</style>
+<h1>12.12 Go 中的密码学</h1>
+<p>通过网络传输的数据必须加密，以防止被 hacker（黑客）读取或篡改，并且保证发出的数据和收到的数据检验和一致。
+鉴于 Go 母公司的业务，我们毫不惊讶地看到 Go 的标准库为该领域提供了超过 30 个的包：</p>
+<ul>
+<li><code>hash</code> 包：实现了 <code>adler32</code>、<code>crc32</code>、<code>crc64</code> 和 <code>fnv</code> 校验；</li>
+<li><code>crypto</code> 包：实现了其它的 hash 算法，比如 <code>md4</code>、<code>md5</code>、<code>sha1</code> 等。以及完整地实现了 <code>aes</code>、<code>blowfish</code>、<code>rc4</code>、<code>rsa</code>、<code>xtea</code> 等加密算法。</li>
+</ul>
+<p>下面的示例用 <code>sha1</code> 和 <code>md5</code> 计算并输出了一些校验值。</p>
+<p>示例 12.20 <a href="examples/chapter_12/hash_sha1.go">hash_sha1.go</a>：</p>
+<p>```go
+// hash_sha1.go
+package main</p>
+<p>import (
+    "fmt"
+    "crypto/sha1"
+    "io"
+    "log"
+)</p>
+<p>func main() {
+    hasher := sha1.New()
+    io.WriteString(hasher, "test")
+    b := []byte{}
+    fmt.Printf("Result: %x\n", hasher.Sum(b))
+    fmt.Printf("Result: %d\n", hasher.Sum(b))
+    //
+    hasher.Reset()
+    data := []byte("We shall overcome!")
+    n, err := hasher.Write(data)
+    if n!=len(data) || err!=nil {
+        log.Printf("Hash write error: %v / %v", n, err)
+    }
+    checksum := hasher.Sum(b)
+    fmt.Printf("Result: %x\n", checksum)
+}
+```</p>
+<p>输出：</p>
+<p><code>Result: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
+Result: [169 74 143 229 204 177 155 166 28 76 8 115 211 145 233 135 152 47 187 211]
+Result: e2222bfc59850bbb00a722e764a555603bb59b2a</code></p>
+<p>通过调用 <code>sha1.New()</code> 创建了一个新的 <code>hash.Hash</code> 对象，用来计算 SHA1 校验值。<code>Hash</code> 类型实际上是一个接口，它实现了 <code>io.Writer</code> 接口：</p>
+<p>```go
+type Hash interface {
+    // Write (via the embedded io.Writer interface) adds more data to the running hash.
+    // It never returns an error.
+    io.Writer</p>
+<pre><code>// Sum appends the current hash to b and returns the resulting slice.
+// It does not change the underlying hash state.
+Sum(b []byte) []byte
+
+// Reset resets the Hash to its initial state.
+Reset()
+
+// Size returns the number of bytes Sum will return.
+Size() int
+
+// BlockSize returns the hash's underlying block size.
+// The Write method must be able to accept any amount
+// of data, but it may operate more efficiently if all writes
+// are a multiple of the block size.
+BlockSize() int
+</code></pre>
+<p>}
+```</p>
+<p>通过 io.WriteString 或 hasher.Write 将给定的 []byte 附加到当前的 <code>hash.Hash</code> 对象中。</p>
+<p><strong>练习 12.9</strong>：<a href="exercises/chapter_12/hash_md5.go">hash_md5.go</a>：</p>
+<p>在示例 12.20 中检验 md5 算法。</p>
+<h2>链接</h2>
+<ul>
+<li><a href="directory.md.html">目录</a></li>
+<li>上一节：<a href="12.11.md.html">用 Gob 传输数据</a></li>
+<li>下一章：<a href="13.0.md.html">错误处理与测试</a></li>
+</ul>
